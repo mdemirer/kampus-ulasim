@@ -218,6 +218,7 @@ body[data-tab="info"] .dir, body[data-tab="debug"] .dir { display: none; }
 .later em, .tag-x { font-style: normal; color: var(--cancel); font: 600 .95rem/1 var(--sign); }
 .foot { margin: 8px 0 0; font-size: .8rem; color: var(--muted); }
 .foot.warn { color: var(--warn-ink); }
+.foot.cancel { color: var(--cancel); }
 .none { color: var(--muted); margin: 4px 0 0; }
 .pad { padding: 16px; }
 .route.empty h2 { color: var(--muted); }
