@@ -1,0 +1,103 @@
+{
+  "_aciklama": "Yedek KM18 tarifesi: İETT'nin ilk duraktan kalkış saatleri. Uygulama İBB servisine ulaşabildiğinde bunun yerine canlı tarifeyi kullanır. Harf işaretli saatler \"HH:MM E\" biçimindedir.",
+  "line": "KM18",
+  "name": "SABANCI ÜNİ./MEDENİYET ÜNİ. - KURTKÖY METRO",
+  "checked": "2026-10-05",
+  "sourceUrl": "https://data.ibb.gov.tr/dataset/iett-planlanan-sefer-saati-web-servisi",
+  "toCampusInfo": "Saatler, KM18'in Kurtköy Mahallesi Metro durağından kalkış saatleridir.",
+  "fromCampusInfo": "Saatler, KM18'in Sabancı Üniversitesi durağından kalkış saatleridir.",
+  "markers": {
+    "E": {
+      "text": "Eski Ankara Cad. durağından başlar; kampüs ile Kurtköy arasındaki tam güzergâhı yapmaz.",
+      "chip": "Eski Ankara Cad.'den başlar",
+      "skipsCampus": true
+    },
+    "*": {
+      "text": "Bu sefer farklı bir güzergâh kullanıyor; ayrıntı için İETT sayfasına bak.",
+      "chip": "Farklı güzergâh"
+    }
+  },
+  "fromCampus": {
+    "weekday": [
+      "07:20",
+      "09:00",
+      "09:30",
+      "10:30",
+      "12:00",
+      "13:30",
+      "15:00",
+      "15:50 E",
+      "15:55",
+      "16:50",
+      "17:45",
+      "18:40",
+      "20:30",
+      "22:00"
+    ],
+    "saturday": [
+      "09:00",
+      "10:30",
+      "12:00",
+      "13:30",
+      "15:00",
+      "16:30",
+      "18:00",
+      "19:30",
+      "21:00",
+      "22:30"
+    ],
+    "sunday": [
+      "09:00",
+      "10:30",
+      "12:00",
+      "13:30",
+      "15:00",
+      "16:30",
+      "18:00",
+      "19:30",
+      "21:00",
+      "22:30"
+    ]
+  },
+  "toCampus": {
+    "weekday": [
+      "08:00",
+      "08:25",
+      "09:45",
+      "11:15",
+      "12:45",
+      "14:15",
+      "15:05",
+      "16:00",
+      "16:55",
+      "17:50",
+      "18:45",
+      "19:40",
+      "21:15"
+    ],
+    "saturday": [
+      "08:15",
+      "09:45",
+      "11:15",
+      "12:45",
+      "14:15",
+      "15:45",
+      "17:15",
+      "18:45",
+      "20:15",
+      "21:45"
+    ],
+    "sunday": [
+      "08:15",
+      "09:45",
+      "11:15",
+      "12:45",
+      "14:15",
+      "15:45",
+      "17:15",
+      "18:45",
+      "20:15",
+      "21:45"
+    ]
+  }
+}

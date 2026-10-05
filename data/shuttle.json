@@ -1,0 +1,441 @@
+{
+  "_aciklama": "Saat yazımı: \"HH:MM\" ya da not numaralarıyla \"HH:MM 9,12\". 04:00'ten önceki saatler bir sonraki takvim gününe aittir (okul sitesinde bir gün öncesine yazılır). Notlardaki serviceDays, seferin listelendiği günün haftanın kaçıncı günü olduğunu sınırlar (0=Pazar ... 6=Cumartesi). Saatler okul sitesinden alınmıştır; not metinleri kısaltılarak yeniden yazılmıştır.",
+  "term": {
+    "name": "26 Eylül 2026 - 31 Aralık 2026 Kış Dönemi Shuttle Programı",
+    "validFrom": "2026-09-26",
+    "validTo": "2026-12-31",
+    "checked": "2026-10-05"
+  },
+  "source": "https://www.sabanciuniv.edu/tr/kampus-shuttle-seferleri",
+  "reservationUrl": "https://kt.gurseltur.com.tr/web/site/musterigirisi?kurumSisNum=120127841",
+  "notes": {
+    "1": {
+      "text": "Kalkış: Büyükdere Caddesi'nde, İstanbul Sapphire AVM girişine yaklaşık 150 m mesafedeki 4. Levent İETT durağı. Güzergâh FSM Köprüsü ve Kavacık bağlantısı üzerinden."
+    },
+    "2": {
+      "text": "Güzergâh FSM Köprüsü ve Kavacık bağlantısı üzerinden."
+    },
+    "3": {
+      "text": "Kalkış: Kadıköy'de Rıhtım Otel'in yanındaki kitapçının önü. Araç yaklaşık 20 dakika sonra Kozyatağı durağından da yolcu alır."
+    },
+    "4": {
+      "text": "Ataşehir'deki Zübeyde Hanım Öğretmenevi İETT durağına (Memorial Hastanesi'nin yaklaşık 200 m ilerisi) ve Kozyatağı durağına uğrar."
+    },
+    "5": {
+      "text": "Kalkış: Kadıköy'de Rıhtım Otel'in yanındaki kitapçının önü. Yalnızca Cuma ve Cumartesi geceleri çalışır, Kozyatağı'na uğramaz. Kalkıştan en geç 3,5 saat önce rezervasyon gerekir.",
+      "chip": "Rezervasyon: 3,5 saat önce",
+      "serviceDays": [
+        5,
+        6
+      ],
+      "reservation": true
+    },
+    "6": {
+      "text": "Kalkış: Ekol Kent sitesinin önündeki Dedepaşa Bulvarı İETT durağı."
+    },
+    "7": {
+      "text": "Orhanlı Konutları ana girişine uğrar."
+    },
+    "8": {
+      "text": "Kalkış: Çekmeköy Metro İETT durağı (Altunizade yönü). Araç, Sancaktepe yönündeki Çamlık durağından da yolcu alır."
+    },
+    "9": {
+      "text": "Kalkış: Mustafa Karuşağı İlkokulu İETT durağı. Araç, Millet Caddesi'ndeki Kurtköy Semt Polikliniği durağından da yolcu alır."
+    },
+    "10": {
+      "text": "Kalkış: Mustafa Karuşağı İlkokulu durağının yaklaşık 50 m gerisi; Kurtköy Semt Polikliniği durağının da 50 m gerisinden yolcu alır. Yalnızca Pazartesi–Perşembe çalışır.",
+      "chip": "Durağın 50 m gerisinden",
+      "serviceDays": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "11": {
+      "text": "Kalkış: Mustafa Karuşağı İlkokulu durağının yaklaşık 50 m gerisi; Kurtköy Semt Polikliniği durağının da 50 m gerisinden yolcu alır. Yalnızca Cuma ve Cumartesi geceleri çalışır; kalkıştan en geç 3 saat önce rezervasyon gerekir.",
+      "chip": "Rezervasyon: 3 saat önce",
+      "serviceDays": [
+        5,
+        6
+      ],
+      "reservation": true
+    },
+    "12": {
+      "text": "Viaport'a uğrar.",
+      "chip": "Viaport'a uğrar"
+    },
+    "13": {
+      "text": "Kalkış: İçmeler Marmaray çıkışında İstasyon Camii'nin yanındaki merdivenle Ankara Caddesi'ne çık; yolun karşısındaki binanın otopark girişi."
+    },
+    "14": {
+      "text": "Çekmeköy'e uğrar.",
+      "chip": "Çekmeköy'e uğrar"
+    }
+  },
+  "routes": [
+    {
+      "id": "kurtkoy",
+      "name": "Kurtköy (Metro)",
+      "stops": [
+        {
+          "name": "Kurtköy (Metro) – Mustafa Karuşağı İlkokulu durağı",
+          "lat": 40.911574,
+          "lng": 29.298
+        },
+        {
+          "name": "Kurtköy Semt Polikliniği durağı",
+          "lat": 40.925889,
+          "lng": 29.308181
+        }
+      ],
+      "iett": "KM18",
+      "toCampus": {
+        "info": [
+          9
+        ],
+        "weekday": [
+          "07:50",
+          "08:20",
+          "09:00",
+          "10:05",
+          "11:05",
+          "12:05",
+          "14:00",
+          "15:30",
+          "16:15",
+          "17:25",
+          "19:00",
+          "20:15",
+          "21:30",
+          "23:00",
+          "23:55 10",
+          "00:45 11"
+        ],
+        "saturday": [
+          "08:00 12",
+          "10:15 12",
+          "11:30 12",
+          "13:30",
+          "15:00",
+          "17:45",
+          "19:00 12",
+          "20:45 12",
+          "22:00",
+          "23:30",
+          "00:45 11"
+        ],
+        "sunday": [
+          "08:10",
+          "10:15 12",
+          "11:30 12",
+          "13:30",
+          "15:00 12",
+          "17:30",
+          "19:00 12",
+          "20:45 12",
+          "22:00",
+          "23:30"
+        ]
+      },
+      "fromCampus": {
+        "info": [
+          9
+        ],
+        "weekday": [
+          "07:30",
+          "09:40",
+          "10:40 12",
+          "11:40",
+          "13:00",
+          "13:45",
+          "14:45",
+          "15:45",
+          "16:45",
+          "18:00",
+          "19:45",
+          "21:00",
+          "22:30",
+          "23:30"
+        ],
+        "saturday": [
+          "07:30",
+          "11:10 12",
+          "13:10 12",
+          "14:40 12",
+          "17:15 12",
+          "18:30",
+          "20:00 12",
+          "21:30",
+          "23:00"
+        ],
+        "sunday": [
+          "07:30",
+          "11:00",
+          "13:00 12",
+          "14:30 12",
+          "17:00 12",
+          "18:30",
+          "20:00 12",
+          "21:30",
+          "23:00"
+        ]
+      }
+    },
+    {
+      "id": "viaport",
+      "name": "Viaport · Orhanlı",
+      "stops": [
+        {
+          "name": "Viaport – Dedepaşa Bulvarı durağı",
+          "lat": 40.936135,
+          "lng": 29.32559
+        },
+        {
+          "name": "Orhanlı Konutları",
+          "lat": 40.929825,
+          "lng": 29.351128
+        }
+      ],
+      "toCampus": {
+        "info": [
+          6,
+          7
+        ],
+        "weekday": [
+          "08:10",
+          "09:00",
+          "10:00",
+          "12:15",
+          "14:00",
+          "16:25",
+          "19:15",
+          "21:40"
+        ],
+        "saturday": [
+          "08:10",
+          "10:25",
+          "11:40",
+          "15:10",
+          "19:15",
+          "21:00"
+        ],
+        "sunday": [
+          "10:25",
+          "11:40",
+          "15:10",
+          "19:15",
+          "21:00"
+        ]
+      },
+      "fromCampus": {
+        "info": [
+          7
+        ],
+        "weekday": [
+          "10:40",
+          "12:50",
+          "13:45",
+          "15:50",
+          "18:45",
+          "19:45",
+          "21:00",
+          "22:30"
+        ],
+        "saturday": [
+          "11:10",
+          "13:10",
+          "14:40",
+          "17:15",
+          "20:00"
+        ],
+        "sunday": [
+          "13:00",
+          "14:30",
+          "17:00",
+          "20:00"
+        ]
+      }
+    },
+    {
+      "id": "kadikoy",
+      "name": "Kadıköy · Kozyatağı",
+      "stops": [
+        {
+          "name": "Kadıköy – Rıhtım Otel yanı",
+          "lat": 40.995121,
+          "lng": 29.024881
+        },
+        {
+          "name": "Kozyatağı durağı",
+          "lat": 40.975026,
+          "lng": 29.100635
+        }
+      ],
+      "toCampus": {
+        "info": [
+          3
+        ],
+        "weekday": [
+          "07:00",
+          "09:00",
+          "15:00",
+          "02:00 5"
+        ],
+        "saturday": [
+          "02:00 5"
+        ],
+        "sunday": []
+      },
+      "fromCampus": {
+        "info": [
+          4
+        ],
+        "weekday": [
+          "13:45",
+          "17:45",
+          "19:50"
+        ],
+        "saturday": [],
+        "sunday": []
+      }
+    },
+    {
+      "id": "levent",
+      "name": "4.Levent",
+      "stops": [
+        {
+          "name": "4. Levent İETT durağı (Sapphire AVM önü)",
+          "lat": 41.085617496834125,
+          "lng": 29.007378317635492
+        }
+      ],
+      "toCampus": {
+        "info": [
+          1
+        ],
+        "weekday": [
+          "07:30",
+          "08:45",
+          "11:00",
+          "21:30"
+        ],
+        "saturday": [],
+        "sunday": [
+          "21:30"
+        ]
+      },
+      "fromCampus": {
+        "info": [
+          2
+        ],
+        "weekday": [
+          "13:40",
+          "15:40",
+          "16:45",
+          "19:40 14"
+        ],
+        "saturday": [],
+        "sunday": [
+          "19:40"
+        ]
+      }
+    },
+    {
+      "id": "icmeler",
+      "name": "İçmeler (Marmaray)",
+      "stops": [
+        {
+          "name": "İçmeler Marmaray – otopark girişi",
+          "lat": 40.84600264082729,
+          "lng": 29.300879551313937
+        }
+      ],
+      "toCampus": {
+        "info": [
+          13
+        ],
+        "weekday": [
+          "08:00",
+          "08:40",
+          "11:10",
+          "12:10",
+          "14:40",
+          "20:30"
+        ],
+        "saturday": [
+          "08:30",
+          "10:00",
+          "13:05",
+          "15:15"
+        ],
+        "sunday": [
+          "08:30",
+          "10:00",
+          "13:05",
+          "15:15"
+        ]
+      },
+      "fromCampus": {
+        "info": [
+          13
+        ],
+        "weekday": [
+          "09:55",
+          "10:55",
+          "13:55",
+          "15:55",
+          "18:40"
+        ],
+        "saturday": [
+          "12:50",
+          "14:30",
+          "17:00",
+          "19:00"
+        ],
+        "sunday": [
+          "12:50",
+          "14:30",
+          "17:00",
+          "19:00"
+        ]
+      }
+    },
+    {
+      "id": "cekmekoy",
+      "name": "Çekmeköy",
+      "stops": [
+        {
+          "name": "Çekmeköy Metro durağı",
+          "lat": 41.014416,
+          "lng": 29.189613
+        },
+        {
+          "name": "Çamlık durağı",
+          "lat": 41.013522,
+          "lng": 29.196053
+        }
+      ],
+      "toCampus": {
+        "info": [
+          8
+        ],
+        "weekday": [
+          "07:50"
+        ],
+        "saturday": [],
+        "sunday": []
+      },
+      "fromCampus": {
+        "info": [
+          8
+        ],
+        "weekday": [
+          "19:40"
+        ],
+        "saturday": [],
+        "sunday": []
+      }
+    }
+  ]
+}
