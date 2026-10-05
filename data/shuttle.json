@@ -10,16 +10,20 @@
   "reservationUrl": "https://kt.gurseltur.com.tr/web/site/musterigirisi?kurumSisNum=120127841",
   "notes": {
     "1": {
-      "text": "Kalkış: Büyükdere Caddesi'nde, İstanbul Sapphire AVM girişine yaklaşık 150 m mesafedeki 4. Levent İETT durağı. Güzergâh FSM Köprüsü ve Kavacık bağlantısı üzerinden."
+      "text": "Kalkış: Büyükdere Caddesi'nde, İstanbul Sapphire AVM girişine yaklaşık 150 m mesafedeki 4. Levent İETT durağı. Güzergâh FSM Köprüsü ve Kavacık bağlantısı üzerinden.",
+      "text_en": "Departs from the 4. Levent İETT stop on Büyükdere Caddesi, about 150 m from the İstanbul Sapphire mall entrance. Runs via the FSM Bridge and the Kavacık link."
     },
     "2": {
-      "text": "Güzergâh FSM Köprüsü ve Kavacık bağlantısı üzerinden."
+      "text": "Güzergâh FSM Köprüsü ve Kavacık bağlantısı üzerinden.",
+      "text_en": "Runs via the FSM Bridge and the Kavacık link."
     },
     "3": {
-      "text": "Kalkış: Kadıköy'de Rıhtım Otel'in yanındaki kitapçının önü. Araç yaklaşık 20 dakika sonra Kozyatağı durağından da yolcu alır."
+      "text": "Kalkış: Kadıköy'de Rıhtım Otel'in yanındaki kitapçının önü. Araç yaklaşık 20 dakika sonra Kozyatağı durağından da yolcu alır.",
+      "text_en": "Departs from in front of the bookshop next to Rıhtım Otel in Kadıköy. About 20 minutes later it also picks up at the Kozyatağı stop."
     },
     "4": {
-      "text": "Ataşehir'deki Zübeyde Hanım Öğretmenevi İETT durağına (Memorial Hastanesi'nin yaklaşık 200 m ilerisi) ve Kozyatağı durağına uğrar."
+      "text": "Ataşehir'deki Zübeyde Hanım Öğretmenevi İETT durağına (Memorial Hastanesi'nin yaklaşık 200 m ilerisi) ve Kozyatağı durağına uğrar.",
+      "text_en": "Stops at the Zübeyde Hanım Öğretmenevi İETT stop in Ataşehir (about 200 m past Memorial Hospital) and at the Kozyatağı stop."
     },
     "5": {
       "text": "Kalkış: Kadıköy'de Rıhtım Otel'in yanındaki kitapçının önü. Yalnızca Cuma ve Cumartesi geceleri çalışır, Kozyatağı'na uğramaz. Kalkıştan en geç 3,5 saat önce rezervasyon gerekir.",
@@ -28,19 +32,25 @@
         5,
         6
       ],
-      "reservation": true
+      "reservation": true,
+      "text_en": "Departs from in front of the bookshop next to Rıhtım Otel in Kadıköy. Runs only on Friday and Saturday nights and does not stop at Kozyatağı. Book at least 3.5 hours before departure.",
+      "chip_en": "Book 3.5 h ahead"
     },
     "6": {
-      "text": "Kalkış: Ekol Kent sitesinin önündeki Dedepaşa Bulvarı İETT durağı."
+      "text": "Kalkış: Ekol Kent sitesinin önündeki Dedepaşa Bulvarı İETT durağı.",
+      "text_en": "Departs from the Dedepaşa Bulvarı İETT stop in front of the Ekol Kent complex."
     },
     "7": {
-      "text": "Orhanlı Konutları ana girişine uğrar."
+      "text": "Orhanlı Konutları ana girişine uğrar.",
+      "text_en": "Stops at the main gate of Orhanlı Konutları."
     },
     "8": {
-      "text": "Kalkış: Çekmeköy Metro İETT durağı (Altunizade yönü). Araç, Sancaktepe yönündeki Çamlık durağından da yolcu alır."
+      "text": "Kalkış: Çekmeköy Metro İETT durağı (Altunizade yönü). Araç, Sancaktepe yönündeki Çamlık durağından da yolcu alır.",
+      "text_en": "Departs from the Çekmeköy Metro İETT stop (towards Altunizade). Also picks up at the Çamlık stop (towards Sancaktepe)."
     },
     "9": {
-      "text": "Kalkış: Mustafa Karuşağı İlkokulu İETT durağı. Araç, Millet Caddesi'ndeki Kurtköy Semt Polikliniği durağından da yolcu alır."
+      "text": "Kalkış: Mustafa Karuşağı İlkokulu İETT durağı. Araç, Millet Caddesi'ndeki Kurtköy Semt Polikliniği durağından da yolcu alır.",
+      "text_en": "Departs from the Mustafa Karuşağı İlkokulu İETT stop. Also picks up at the Kurtköy Semt Polikliniği stop on Millet Caddesi."
     },
     "10": {
       "text": "Kalkış: Mustafa Karuşağı İlkokulu durağının yaklaşık 50 m gerisi; Kurtköy Semt Polikliniği durağının da 50 m gerisinden yolcu alır. Yalnızca Pazartesi–Perşembe çalışır.",
@@ -50,7 +60,9 @@
         2,
         3,
         4
-      ]
+      ],
+      "text_en": "Departs about 50 m behind the Mustafa Karuşağı İlkokulu stop and picks up about 50 m behind the Kurtköy Semt Polikliniği stop. Runs Monday to Thursday only.",
+      "chip_en": "50 m behind the stop"
     },
     "11": {
       "text": "Kalkış: Mustafa Karuşağı İlkokulu durağının yaklaşık 50 m gerisi; Kurtköy Semt Polikliniği durağının da 50 m gerisinden yolcu alır. Yalnızca Cuma ve Cumartesi geceleri çalışır; kalkıştan en geç 3 saat önce rezervasyon gerekir.",
@@ -59,18 +71,25 @@
         5,
         6
       ],
-      "reservation": true
+      "reservation": true,
+      "text_en": "Departs about 50 m behind the Mustafa Karuşağı İlkokulu stop and picks up about 50 m behind the Kurtköy Semt Polikliniği stop. Runs only on Friday and Saturday nights; book at least 3 hours before departure.",
+      "chip_en": "Book 3 h ahead"
     },
     "12": {
       "text": "Viaport'a uğrar.",
-      "chip": "Viaport'a uğrar"
+      "chip": "Viaport'a uğrar",
+      "text_en": "Stops at Viaport.",
+      "chip_en": "Stops at Viaport"
     },
     "13": {
-      "text": "Kalkış: İçmeler Marmaray çıkışında İstasyon Camii'nin yanındaki merdivenle Ankara Caddesi'ne çık; yolun karşısındaki binanın otopark girişi."
+      "text": "Kalkış: İçmeler Marmaray çıkışında İstasyon Camii'nin yanındaki merdivenle Ankara Caddesi'ne çık; yolun karşısındaki binanın otopark girişi.",
+      "text_en": "Departs from İçmeler Marmaray: take the stairs next to the station mosque up to Ankara Caddesi; pickup is at the car park entrance of the building across the road."
     },
     "14": {
       "text": "Çekmeköy'e uğrar.",
-      "chip": "Çekmeköy'e uğrar"
+      "chip": "Çekmeköy'e uğrar",
+      "text_en": "Stops at Çekmeköy.",
+      "chip_en": "Stops at Çekmeköy"
     }
   },
   "routes": [
@@ -81,12 +100,14 @@
         {
           "name": "Kurtköy (Metro) – Mustafa Karuşağı İlkokulu durağı",
           "lat": 40.911574,
-          "lng": 29.298
+          "lng": 29.298,
+          "name_en": "Kurtköy (Metro) – Mustafa Karuşağı İlkokulu stop"
         },
         {
           "name": "Kurtköy Semt Polikliniği durağı",
           "lat": 40.925889,
-          "lng": 29.308181
+          "lng": 29.308181,
+          "name_en": "Kurtköy Semt Polikliniği stop"
         }
       ],
       "iett": "KM18",
@@ -189,12 +210,14 @@
         {
           "name": "Viaport – Dedepaşa Bulvarı durağı",
           "lat": 40.936135,
-          "lng": 29.32559
+          "lng": 29.32559,
+          "name_en": "Viaport – Dedepaşa Bulvarı stop"
         },
         {
           "name": "Orhanlı Konutları",
           "lat": 40.929825,
-          "lng": 29.351128
+          "lng": 29.351128,
+          "name_en": "Orhanlı Konutları"
         }
       ],
       "toCampus": {
@@ -264,12 +287,14 @@
         {
           "name": "Kadıköy – Rıhtım Otel yanı",
           "lat": 40.995121,
-          "lng": 29.024881
+          "lng": 29.024881,
+          "name_en": "Kadıköy – next to Rıhtım Otel"
         },
         {
           "name": "Kozyatağı durağı",
           "lat": 40.975026,
-          "lng": 29.100635
+          "lng": 29.100635,
+          "name_en": "Kozyatağı stop"
         }
       ],
       "toCampus": {
@@ -307,7 +332,8 @@
         {
           "name": "4. Levent İETT durağı (Sapphire AVM önü)",
           "lat": 41.085617496834125,
-          "lng": 29.007378317635492
+          "lng": 29.007378317635492,
+          "name_en": "4. Levent İETT stop (Sapphire mall)"
         }
       ],
       "toCampus": {
@@ -348,7 +374,8 @@
         {
           "name": "İçmeler Marmaray – otopark girişi",
           "lat": 40.84600264082729,
-          "lng": 29.300879551313937
+          "lng": 29.300879551313937,
+          "name_en": "İçmeler Marmaray – car park entrance"
         }
       ],
       "toCampus": {
@@ -408,12 +435,14 @@
         {
           "name": "Çekmeköy Metro durağı",
           "lat": 41.014416,
-          "lng": 29.189613
+          "lng": 29.189613,
+          "name_en": "Çekmeköy Metro stop"
         },
         {
           "name": "Çamlık durağı",
           "lat": 41.013522,
-          "lng": 29.196053
+          "lng": 29.196053,
+          "name_en": "Çamlık stop"
         }
       ],
       "toCampus": {

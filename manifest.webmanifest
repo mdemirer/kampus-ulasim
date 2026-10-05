@@ -1,6 +1,6 @@
 {
-  "name": "Kampüs Ulaşım",
-  "short_name": "Kampüs",
+  "name": "SUlaşım",
+  "short_name": "SUlaşım",
   "description": "Sabancı Üniversitesi shuttle'ları ve İETT KM18 için sıradaki sefer.",
   "lang": "tr",
   "id": "./",
@@ -11,8 +11,23 @@
   "background_color": "#13315C",
   "theme_color": "#13315C",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

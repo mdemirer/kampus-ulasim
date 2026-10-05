@@ -5,16 +5,22 @@
   "checked": "2026-10-05",
   "sourceUrl": "https://data.ibb.gov.tr/dataset/iett-planlanan-sefer-saati-web-servisi",
   "toCampusInfo": "Saatler, KM18'in Kurtköy Mahallesi Metro durağından kalkış saatleridir.",
+  "toCampusInfo_en": "Times are KM18 departures from the Kurtköy Mahallesi Metro stop.",
   "fromCampusInfo": "Saatler, KM18'in Sabancı Üniversitesi durağından kalkış saatleridir.",
+  "fromCampusInfo_en": "Times are KM18 departures from the Sabancı Üniversitesi stop.",
   "markers": {
     "E": {
       "text": "Eski Ankara Cad. durağından başlar; kampüs ile Kurtköy arasındaki tam güzergâhı yapmaz.",
       "chip": "Eski Ankara Cad.'den başlar",
-      "skipsCampus": true
+      "skipsCampus": true,
+      "text_en": "Starts at the Eski Ankara Cad. stop; doesn't run the full route between campus and Kurtköy.",
+      "chip_en": "Starts at Eski Ankara Cad."
     },
     "*": {
       "text": "Bu sefer farklı bir güzergâh kullanıyor; ayrıntı için İETT sayfasına bak.",
-      "chip": "Farklı güzergâh"
+      "chip": "Farklı güzergâh",
+      "text_en": "This trip takes a different route; see the İETT page for details.",
+      "chip_en": "Different route"
     }
   },
   "fromCampus": {

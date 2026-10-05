@@ -1,8 +1,9 @@
+// SUlaşım · Claude (Anthropic) tarafından geliştirildi — Claude Opus 5.5
 // Service worker: uygulama dosyalarını önbelleğe alır, çevrimdışı çalıştırır.
 // Uygulama kodunu değiştirdiğinde VERSION'ı artır; telefonlar bir sonraki açılışta yeni sürümü alır.
 // İBB ve okul sitesi istekleri önbelleğe alınmaz, doğrudan ağa gider.
 
-const VERSION = 'v1.2.0';
+const VERSION = 'v1.3.1';
 const CACHE = `kampus-${VERSION}`;
 
 const SHELL = [
@@ -15,6 +16,7 @@ const SHELL = [
   './js/iett.js',
   './js/config.js',
   './js/debug.js',
+  './js/i18n.js',
   './data/shuttle.json',
   './data/km18.json',
   './fonts/barlow-condensed-latin-600-normal.woff2',

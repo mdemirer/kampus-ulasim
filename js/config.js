@@ -1,6 +1,8 @@
 // Uygulama ayarları. Değiştirdikten sonra sw.js içindeki VERSION'ı da artır.
 export const CONFIG = {
-  version: '1.2.0',
+  version: '1.3.1',
+  buildDate: '2026-10-05',
+  builtWith: 'Claude Opus 5.5',
   line: 'KM18',
 
   ibb: {

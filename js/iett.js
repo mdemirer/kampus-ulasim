@@ -1,3 +1,4 @@
+// SUlaşım · Claude (Anthropic) tarafından geliştirildi — Claude Opus 5.5
 // İBB / İETT web servisleri: istek, yanıt ayrıştırma, tarife ve duyuru işleme.
 // Ağ dışındaki tüm fonksiyonlar saf; Node testlerinde de çalışır.
 

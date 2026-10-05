@@ -1,3 +1,4 @@
+// SUlaşım · Claude (Anthropic) tarafından geliştirildi — Claude Opus 5.5
 // Gizli test ekranı: Bilgi sekmesinde sürüm yazısına 4 saniye içinde 7 kez dokun ya da adrese #debug ekle.
 
 const SAMPLE_ANNS = [

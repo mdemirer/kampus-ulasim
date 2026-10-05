@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Kampüs Ulaşım</title>
-  <meta name="description" content="Sabancı Üniversitesi kampüs shuttle'ları ve KM18 otobüsü için sıradaki sefer.">
+  <title>SUlaşım</title>
+  <meta name="description" content="Sabancı Üniversitesi kampüs shuttle'ları ve İETT KM18 için sıradaki sefer. Next campus shuttle and İETT KM18 departures.">
   <meta name="theme-color" content="#13315C">
+  <meta name="generator" content="Claude Opus 5.5 (Anthropic)">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="./icons/icon-32.png" sizes="32x32" type="image/png">
@@ -13,7 +14,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Kampüs">
+  <meta name="apple-mobile-web-app-title" content="SUlaşım">
   <link rel="preload" href="./fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="./css/app.css">
   <script type="module" src="./js/app.js"></script>
@@ -32,27 +33,27 @@
   <div class="app">
     <header class="top">
       <div class="top-row">
-        <h1 class="brand">Kampüs Ulaşım</h1>
-        <button id="refresh" class="icon-btn" type="button" aria-label="İETT bilgisini yenile"><svg class="i"><use href="#i-refresh"/></svg></button>
+        <h1 class="brand" data-i18n="appName">SUlaşım</h1>
+        <button id="refresh" class="icon-btn" type="button" aria-label="İETT bilgisini yenile" data-i18n-aria="refreshAria"><svg class="i"><use href="#i-refresh"/></svg></button>
         <span class="clock" id="clock"></span>
       </div>
-      <div class="dir" role="group" aria-label="Yön">
-        <button type="button" data-dir="fromCampus">Kampüsten</button>
-        <button type="button" data-dir="toCampus">Kampüse</button>
+      <div class="dir" role="group" aria-label="Yön" data-i18n-aria="dirGroup">
+        <button type="button" data-dir="fromCampus" data-i18n="dirFrom">Kampüsten</button>
+        <button type="button" data-dir="toCampus" data-i18n="dirTo">Kampüse</button>
       </div>
     </header>
 
     <div id="banners"></div>
-    <main id="view" tabindex="-1"><p class="loading">Yükleniyor…</p></main>
+    <main id="view" tabindex="-1"><p class="loading" data-i18n="loading">Yükleniyor…</p></main>
 
-    <nav class="tabs" aria-label="Bölümler">
-      <button type="button" data-tab="fav"><svg class="i"><use href="#i-star"/></svg><span>Favoriler</span></button>
-      <button type="button" data-tab="next"><svg class="i"><use href="#i-next"/></svg><span>Sıradaki</span></button>
-      <button type="button" data-tab="program"><svg class="i"><use href="#i-list"/></svg><span>Program</span></button>
-      <button type="button" data-tab="info"><svg class="i"><use href="#i-info"/></svg><span>Bilgi</span></button>
+    <nav class="tabs" aria-label="Bölümler" data-i18n-aria="tabsGroup">
+      <button type="button" data-tab="fav"><svg class="i"><use href="#i-star"/></svg><span data-i18n="tabFav">Favoriler</span></button>
+      <button type="button" data-tab="next"><svg class="i"><use href="#i-next"/></svg><span data-i18n="tabNext">Sıradaki</span></button>
+      <button type="button" data-tab="program"><svg class="i"><use href="#i-list"/></svg><span data-i18n="tabProgram">Program</span></button>
+      <button type="button" data-tab="info"><svg class="i"><use href="#i-info"/></svg><span data-i18n="tabInfo">Bilgi</span></button>
     </nav>
   </div>
   <div id="toast" role="status" aria-live="polite"></div>
-  <noscript><p class="noscript">Bu uygulama JavaScript gerektirir.</p></noscript>
+  <noscript><p class="noscript">Bu uygulama JavaScript gerektirir. / This app requires JavaScript.</p></noscript>
 </body>
 </html>

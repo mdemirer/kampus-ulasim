@@ -300,8 +300,10 @@ body[data-tab="info"] .dir, body[data-tab="debug"] .dir { display: none; }
 }
 .btn.ghost { background: transparent; color: var(--ink); }
 .link { border: 0; background: none; padding: 0; color: var(--shuttle); text-decoration: underline; cursor: pointer; }
-.version { margin-top: 18px; }
-.version button { border: 0; background: none; color: var(--muted); padding: 6px 0; font-size: .85rem; cursor: default; user-select: none; }
+.credits { margin-top: 22px; color: var(--muted); font-size: .85rem; }
+.credits p { margin: 0 0 4px; }
+.credits-name { font: 600 1.15rem/1.2 var(--sign); color: var(--ink); }
+.credits #version { border: 0; background: none; color: inherit; padding: 4px 0; font: inherit; cursor: default; user-select: none; }
 
 /* Alt sekmeler */
 .tabs {

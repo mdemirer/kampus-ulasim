@@ -1,6 +1,6 @@
-# Kampüs Ulaşım
+# SUlaşım
 
-Sabancı Üniversitesi kampüs shuttle'larını ve İETT KM18 otobüsünü tek ekranda gösteren, telefona kurulabilen (PWA) bir web uygulaması. Sunucusu yok; GitHub Pages'te ücretsiz yayınlanır.
+Sabancı Üniversitesi kampüs shuttle'larını ve İETT KM18 otobüsünü tek ekranda gösteren, telefona kurulabilen (PWA) bir web uygulaması. Türkçe ve İngilizce (Bilgi sekmesinden seçilir; ilk açılışta telefonun diline göre). Sunucusu yok; GitHub Pages'te ücretsiz yayınlanır.
 
 - **Favoriler:** Hattın yanındaki yıldızla favori eklenir; favori varsa uygulama bu sayfayla açılır. Her favori için büyük geri sayım ve bugün kalan seferler geniş bir ızgarada. Geçmiş seferler bir dokunuşla açılır. Gece seferleri (00:45, 02:00) "bugün"ün sonunda görünür. Favoriler sadece cihazda saklanır.
 - **Sıradaki:** Her güzergâh için bir sonraki sefer ve geri sayım. Kurtköy satırında shuttle ve KM18 birlikte; hangisi önce kalkıyorsa o üstte. İkonlar ve renkler aracın türünü ayırır.
@@ -84,6 +84,7 @@ Shuttle saatleri `data/shuttle.json` içinde, okul sitesindeki tabloyla aynı d�
 
 - Saatin yanındaki sayılar sitedeki not numaraları (`notes` bölümünde). `serviceDays` alanı olan notlar seferi haftanın belli günlerine sınırlar (0 = Pazar … 6 = Cumartesi).
 - 04:00'ten önceki saatler sitede olduğu gibi bir önceki günün listesine yazılır. Uygulama onları kendisi ertesi güne taşır.
+- Notlarda `text_en` ve `chip_en`, duraklarda `name_en` alanları İngilizce görünüm içindir; yeni not eklersen bunları da yaz, yoksa İngilizcede Türkçesi görünür.
 - `term` bölümündeki tarihleri ve dönem adını da güncelle; dönem adı okul sitesindeki başlıkla aynı olmalı (karşılaştırma bununla yapılıyor).
 
 Sadece veri dosyasını değiştirdiysen başka bir şey yapmana gerek yok; telefonlar yeni saatleri arka planda alır ve bir sonraki açılışta gösterir. Uygulama kodunu (`js/`, `css/`, `index.html`) değiştirdiysen `sw.js` içindeki `VERSION` değerini artır.
@@ -103,6 +104,24 @@ Gece seferleri, gün kısıtları, KM18 (E) seferi, iptal ayrıştırma ve İBB 
 - **Logolar:** İETT, İBB ya da Sabancı logosu kullanılmıyor; otobüs ve minibüs ikonları bu uygulama için çizildi.
 - **Gizlilik:** Uygulama kişisel veri toplamıyor; hesap, çerez, analitik yok. Tercihler ve önbellek yalnızca cihazda (localStorage). GitHub Pages depo sahibine ziyaretçi kaydı vermiyor.
 - **Yazı tipi:** Barlow Condensed, SIL Open Font License (`fonts/OFL-LICENSE.txt`).
+
+## Yapım ve sürümler
+
+SUlaşım, Anthropic'in Claude Opus 5.5 modeli tarafından, Claude sohbet arayüzünde adım adım geliştirildi. Uygulamanın Bilgi sekmesinin en altında sürüm numarası ve tarihiyle birlikte bu not da yer alıyor.
+
+| Sürüm | Tarih | Değişiklik |
+|---|---|---|
+| 1.0.0 | 5 Ekim 2026 | İlk sürüm: shuttle ve KM18 birlikte, Program, Bilgi, gizli debug ekranı, çevrimdışı çalışma |
+| 1.0.1 | 5 Ekim 2026 | KM18 ilk durak kalkış notları, kaynak/lisans ve gizlilik bölümü, durak notları yeniden yazıldı |
+| 1.0.2 | 5 Ekim 2026 | KM18 iptal satırı açık ifadeyle |
+| 1.0.3 | 5 Ekim 2026 | KM18 tarifesi günlük GitHub işiyle İBB'den; uygulama öne gelince kendini günceller |
+| 1.1.0 | 5 Ekim 2026 | Favoriler |
+| 1.2.0 | 5 Ekim 2026 | Lacivert + turuncu renk paleti |
+| 1.2.1 | 5 Ekim 2026 | Kısa ad |
+| 1.3.0 | 5 Ekim 2026 | Ad: SUlaşım; İngilizce dil desteği |
+| 1.3.1 | 5 Ekim 2026 | Bilgi sekmesinde sürüm ve yapım notu |
+
+Yeni sürüm çıkarırken `js/config.js` içindeki `version` ve `buildDate` ile `sw.js` içindeki `VERSION` birlikte güncellenir.
 
 ## Bilinen sınırlar
 

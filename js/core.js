@@ -1,3 +1,4 @@
+// SUlaşım · Claude (Anthropic) tarafından geliştirildi — Claude Opus 5.5
 // Saf mantık: İstanbul saati, gün tipleri, seferlerin takvime yayılması, sıradaki araç.
 // Tarayıcıda ve Node testlerinde aynı dosya kullanılır; DOM'a dokunmaz.
 
@@ -124,7 +125,7 @@ export function expandService(svc, startMs, endMs) {
       const night = e.min < NIGHT_CUTOFF_MIN;
       const ms = base + (e.min + (night ? 1440 : 0)) * 60000;
       if (ms < startMs || ms > endMs) continue;
-      const marker = e.marker ? (svc.markerDefs[e.marker] || { text: `Farklı güzergâh (${e.marker})`, chip: `Farklı güzergâh` }) : null;
+      const marker = e.marker ? (svc.markerDefs[e.marker] || svc.markerDefs['*'] || { text: e.marker, chip: e.marker }) : null;
       const chips = [];
       for (const d of defs) if (d.chip) chips.push(d.chip);
       if (marker?.chip) chips.push(marker.chip);
@@ -183,14 +184,14 @@ export function dayProgram(services, dateKey, cancellations = null) {
 }
 
 /** "12 dk", "1 sa 5 dk", "Kalkıyor"... */
-export function countdown(ms, nowMs) {
+export function countdown(ms, nowMs, L = { departing: 'Kalkıyor', min: 'dk', hr: 'sa' }) {
   const diff = ms - nowMs;
-  if (diff <= 0) return { big: 'Kalkıyor', unit: '', soon: true };
+  if (diff <= 0) return { big: L.departing, unit: '', soon: true };
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return { big: '<1', unit: 'dk', soon: true };
-  if (mins < 100) return { big: String(mins), unit: 'dk', soon: mins <= 5 };
+  if (mins < 1) return { big: '<1', unit: L.min, soon: true };
+  if (mins < 100) return { big: String(mins), unit: L.min, soon: mins <= 5 };
   const h = Math.floor(mins / 60), m = mins % 60;
-  if (h < 10) return { big: String(h), unit: m ? `sa ${m} dk` : 'sa', soon: false };
+  if (h < 10) return { big: String(h), unit: m ? `${L.hr} ${m} ${L.min}` : L.hr, soon: false };
   return { big: null, unit: '', soon: false };
 }
 
@@ -210,18 +211,29 @@ export function nightLabel(serviceKey) {
   return `${DAY_ACC[a]} ${DAY_DAT[(a + 1) % 7]} bağlayan gece`;
 }
 
+/** Not ve işaret tanımlarını dile göre sadeleştirir: chip_en/text_en varsa İngilizcede onlar kullanılır. */
+function localizeDefs(defs = {}, lang = 'tr') {
+  const out = {};
+  for (const [k, d] of Object.entries(defs)) {
+    out[k] = { ...d, chip: (lang === 'en' && d.chip_en) || d.chip, text: (lang === 'en' && d.text_en) || d.text };
+  }
+  return out;
+}
+
 /** shuttle.json + KM18 tarifesinden, seçilen yön için güzergâh başına hizmet listesi. */
-export function buildServices(shuttle, km18, dir) {
+export function buildServices(shuttle, km18, dir, lang = 'tr') {
   const byRoute = new Map();
+  const noteDefs = localizeDefs(shuttle.notes, lang);
+  const markerDefs = localizeDefs(km18?.markers, lang);
   for (const r of shuttle.routes) {
     const svcs = [makeService({
       id: `shuttle:${r.id}:${dir}`, kind: 'shuttle', routeId: r.id, dir,
-      lists: r[dir], noteDefs: shuttle.notes, validTo: shuttle.term?.validTo || null,
+      lists: r[dir], noteDefs, validTo: shuttle.term?.validTo || null,
     })];
     if (r.iett && km18 && km18[dir]) {
       svcs.push(makeService({
         id: `iett:${r.iett}:${dir}`, kind: 'iett', routeId: r.id, dir, line: r.iett,
-        lists: km18[dir], markerDefs: km18.markers || {},
+        lists: km18[dir], markerDefs,
       }));
     }
     byRoute.set(r.id, svcs);

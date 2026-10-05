@@ -1,7 +1,11 @@
+// SUlaşım · Claude (Anthropic) tarafından geliştirildi — Claude Opus 5.5
 import { CONFIG } from './config.js';
 import * as C from './core.js';
 import * as I from './iett.js';
+import * as L from './i18n.js';
 import { renderDebug, bindDebug } from './debug.js';
+
+const { t } = L;
 
 /* ---------------- Yardımcılar ---------------- */
 
@@ -15,17 +19,8 @@ export const LS = {
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const $ = (sel, root = document) => root.querySelector(sel);
-
-export function ago(ms) {
-  if (!ms) return 'hiç';
-  const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
-  if (s < 60) return 'az önce';
-  const m = Math.round(s / 60);
-  if (m < 60) return `${m} dk önce`;
-  const h = Math.round(m / 60);
-  if (h < 48) return `${h} sa önce`;
-  return `${Math.round(h / 24)} gün önce`;
-}
+const ago = (ms) => L.ago(ms);
+const link = (href, text) => `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(text)}</a>`;
 
 function toast(msg) {
   const el = $('#toast');
@@ -44,6 +39,7 @@ export const state = {
   ann: { items: [], fetchedAt: null, strategy: null, error: null, failedAt: null, totalRows: null },
   analyses: [],
   cancellations: new Map(),
+  lang: L.detectLang(LS.get('lang')),
   dir: LS.get('dir', 'fromCampus'),
   tab: 'next',
   programRoute: LS.get('programRoute', 'kurtkoy'),
@@ -61,6 +57,7 @@ export const state = {
   installPrompt: null,
   busy: false,
 };
+L.setLang(state.lang);
 
 /** Uygulamanın "şimdi"si: debug ekranında test saati ayarlıysa o. */
 export function now() {
@@ -77,6 +74,13 @@ export function setSim(sim) {
   render();
 }
 
+function setLanguage(lang) {
+  state.lang = lang;
+  L.setLang(lang);
+  LS.set('lang', lang);
+  render();
+}
+
 function km18Data() {
   const fb = state.km18Fallback;
   if (!fb) return null;
@@ -84,16 +88,18 @@ function km18Data() {
   return { ...fb, fromCampus: lists.fromCampus, toCampus: lists.toCampus };
 }
 
+const services = () => C.buildServices(state.shuttle, km18Data(), state.dir, state.lang);
+
 /** Duyuruları yeniden değerlendirir, iptal haritasını kurar. */
 export function recompute() {
   if (!state.km18Fallback) return;
-  const t = now();
-  const todayKey = C.dateKeyOf(t);
+  const nowMs = now();
+  const todayKey = C.dateKeyOf(nowMs);
   const plan = km18Data();
   const all = [...state.ann.items, ...state.fakeAnns.map((a) => ({ ...a, fake: true }))];
   state.analyses = all.map((ann) => {
-    const analysis = I.analyzeAnnouncement(ann, { nowMs: t, plan });
-    const cls = I.classifyAnnouncement(ann, analysis, { nowMs: t, standingAfterDays: CONFIG.standingAfterDays, todayKey });
+    const analysis = I.analyzeAnnouncement(ann, { nowMs, plan });
+    const cls = I.classifyAnnouncement(ann, analysis, { nowMs, standingAfterDays: CONFIG.standingAfterDays, todayKey });
     return { ann, analysis, ...cls };
   });
   state.cancellations = I.cancellationMap(state.analyses, CONFIG.line);
@@ -193,135 +199,130 @@ function vehicleBadge(trip, { withLine = true } = {}) {
   return `<span class="veh shuttle"><svg class="i" aria-hidden="true"><use href="#i-van"/></svg>${withLine ? '<span>Shuttle</span>' : '<span class="sr">Shuttle</span>'}</span>`;
 }
 
-function whenLabel(trip, t) {
-  const today = C.dateKeyOf(t);
+function whenLabel(trip, nowMs) {
+  const today = C.dateKeyOf(nowMs);
   if (trip.dateKey === today) return '';
-  if (trip.night && trip.serviceKey === today) return 'bu gece';
-  return C.dayLabel(trip.ms, t);
+  if (trip.night && trip.serviceKey === today) return t('tonight');
+  return L.dayLabel(trip.ms, nowMs);
 }
 
 function routeById(id) { return state.shuttle.routes.find((r) => r.id === id) || state.shuttle.routes[0]; }
 
 function dirTitle(route) {
-  return state.dir === 'fromCampus' ? `Kampüs → ${route.name}` : `${route.name} → Kampüs`;
+  return state.dir === 'fromCampus' ? `${t('campus')} → ${route.name}` : `${route.name} → ${t('campus')}`;
 }
 
 /* ---------------- Sıradaki ---------------- */
 
 function starBtn(routeId) {
   const on = state.favs.includes(routeId);
-  return `<button type="button" class="star" data-fav="${routeId}" aria-pressed="${on}" aria-label="${on ? 'Favorilerden çıkar' : 'Favorilere ekle'}"><svg class="i" aria-hidden="true"><use href="#i-star"/></svg></button>`;
+  return `<button type="button" class="star" data-fav="${routeId}" aria-pressed="${on}" aria-label="${esc(on ? t('favRemove') : t('favAdd'))}"><svg class="i" aria-hidden="true"><use href="#i-star"/></svg></button>`;
 }
 
 /** Büyük geri sayım + saat + araç + notlar. Sıradaki ve Favoriler sayfası aynı bloğu kullanır. */
-function leadBlock(lead, t) {
-  const diff = lead.ms - t;
-  const wl = whenLabel(lead, t);
-  const cd = C.countdown(lead.ms, t);
+function leadBlock(lead, nowMs) {
+  const diff = lead.ms - nowMs;
+  const wl = whenLabel(lead, nowMs);
+  const cd = C.countdown(lead.ms, nowMs, t('cd'));
   const asClock = !(diff < 10 * 3600000 && cd.big);
   const big = asClock
     ? `<b>${C.fmtClock(lead.ms)}</b>`
-    : `<b${cd.big.length > 3 ? ' class="word"' : ''}>${esc(cd.big)}</b>${cd.unit ? `<span class="unit">${cd.unit}</span>` : ''}`;
+    : `<b${cd.big.length > 3 ? ' class="word"' : ''}>${esc(cd.big)}</b>${cd.unit ? `<span class="unit">${esc(cd.unit)}</span>` : ''}`;
   const chips = [...lead.chips];
-  if (lead.beyondTerm) chips.push('Program dönemi dışında');
+  if (lead.beyondTerm) chips.push(t('outOfTerm'));
   return `<div class="lead">
       <div class="count">${big}</div>
       <div class="meta">
         <div class="when">${asClock ? '' : `<time>${lead.time}</time>`}${wl ? `<span class="d${asClock ? ' big-d' : ''}">${esc(wl)}</span>` : ''}${vehicleBadge(lead)}</div>
         ${chips.length ? `<p class="chips">${chips.map((c) => `<span>${esc(c)}</span>`).join('')}</p>` : ''}
-        ${lead.reservation ? `<p class="res"><a href="${esc(state.shuttle.reservationUrl)}" target="_blank" rel="noopener">Rezervasyon yap</a></p>` : ''}
+        ${lead.reservation ? `<p class="res">${link(state.shuttle.reservationUrl, t('reserve'))}</p>` : ''}
       </div>
     </div>`;
 }
 
-function routeRow(route, trips, t) {
+function routeRow(route, trips, nowMs) {
   const leadIdx = trips.findIndex((x) => !x.cancelled);
   const lead = trips[leadIdx];
   const head = `<div class="route-head"><h2><button type="button" class="route-link" data-open-route="${route.id}">${esc(route.name)}</button></h2>${starBtn(route.id)}</div>`;
   if (!lead) {
-    return `<section class="route empty">${head}<p class="none">Önümüzdeki günlerde bu yönde sefer yok.</p></section>`;
+    return `<section class="route empty">${head}<p class="none">${esc(t('noTrips'))}</p></section>`;
   }
   const before = trips.slice(0, leadIdx);
   // Seyrek hatlarda günler sonrasını sıralamak gürültü olur: en fazla 24 saat ileriyi göster
-  const later = trips.slice(leadIdx + 1).filter((x) => x.ms < t + C.DAY_MS);
+  const later = trips.slice(leadIdx + 1).filter((x) => x.ms < nowMs + C.DAY_MS);
   const cancelLine = before.length
-    ? `<p class="cancelled-line">${before.map((x) => `<s>${x.time}</s> ${esc(x.line || 'Shuttle')} iptal`).join(', ')}</p>`
+    ? `<p class="cancelled-line">${before.map((x) => `<s>${x.time}</s> ${esc(x.line || 'Shuttle')} ${esc(t('cancelled'))}`).join(', ')}</p>`
     : '';
   const laterHtml = later.length
     ? `<ol class="later">${later.map((x) => {
-      const lbl = whenLabel(x, t);
-      return `<li class="${x.kind}${x.cancelled ? ' x' : ''}">${vehicleBadge(x, { withLine: false })}<time>${x.time}</time>${x.cancelled ? '<em>iptal</em>' : ''}${lbl ? `<span class="d">${esc(lbl)}</span>` : ''}</li>`;
+      const lbl = whenLabel(x, nowMs);
+      return `<li class="${x.kind}${x.cancelled ? ' x' : ''}">${vehicleBadge(x, { withLine: false })}<time>${x.time}</time>${x.cancelled ? `<em>${esc(t('cancelled'))}</em>` : ''}${lbl ? `<span class="d">${esc(lbl)}</span>` : ''}</li>`;
     }).join('')}</ol>`
     : '';
-  const foot = route.iett ? cancelFoot(route.iett, t) : '';
+  const foot = route.iett ? cancelFoot(route.iett, nowMs) : '';
   return `<section class="route ${lead.kind}">
     ${head}
     ${cancelLine}
-    ${leadBlock(lead, t)}
+    ${leadBlock(lead, nowMs)}
     ${laterHtml}
     ${foot}
   </section>`;
 }
 
 /** Kurtköy satırının altındaki KM18 iptal durumu: ne bulunduğu ve ne zaman bakıldığı açıkça yazılır. */
-function cancelFoot(line, t) {
+function cancelFoot(line, nowMs) {
   const a = state.ann;
   if (!a.fetchedAt) {
-    return `<p class="foot warn">${line} iptalleri kontrol edilemedi; iptal edilen bir sefer burada görünmeyebilir.</p>`;
+    return `<p class="foot warn">${esc(t('cancelUnknown', { line }))}</p>`;
   }
-  const prefix = `iett:${line}:${state.dir}:${C.dateKeyOf(t)}:`;
+  const prefix = `iett:${line}:${state.dir}:${C.dateKeyOf(nowMs)}:`;
   const times = [...state.cancellations.keys()].filter((k) => k.startsWith(prefix)).map((k) => k.slice(prefix.length)).sort();
-  const checked = a.error
-    ? `en son ${ago(a.fetchedAt)} kontrol edilebildi`
-    : `${ago(a.fetchedAt)} kontrol edildi`;
+  const checked = a.error ? t('checkedLast', { ago: ago(a.fetchedAt) }) : t('checkedAgo', { ago: ago(a.fetchedAt) });
   const what = times.length
-    ? `Bugün bu yönde ${times.length} ${line} seferi iptal (${times.join(', ')})`
-    : `${line} için iptal duyurusu yok`;
+    ? t('cancelsToday', { n: times.length, line, times: times.join(', ') })
+    : t('noCancels', { line });
   const cls = a.error ? ' warn' : times.length ? ' cancel' : '';
-  return `<p class="foot${cls}">${what} · ${checked}</p>`;
+  return `<p class="foot${cls}">${esc(what)} · ${esc(checked)}</p>`;
 }
 
 function renderNext() {
-  const t = now();
-  const services = C.buildServices(state.shuttle, km18Data(), state.dir);
-  const rows = state.shuttle.routes.map((r) => routeRow(r, C.upcoming(services.get(r.id), t, { count: 4, cancellations: state.cancellations }), t));
+  const nowMs = now();
+  const svc = services();
+  const rows = state.shuttle.routes.map((r) => routeRow(r, C.upcoming(svc.get(r.id), nowMs, { count: 4, cancellations: state.cancellations }), nowMs));
   return `<div class="board">${rows.join('')}</div>`;
 }
 
 /* ---------------- Favoriler ---------------- */
 
-function favCard(route, svcs, t) {
-  const trips = C.upcoming(svcs, t, { count: 1, cancellations: state.cancellations });
+function favCard(route, svcs, nowMs) {
+  const trips = C.upcoming(svcs, nowMs, { count: 1, cancellations: state.cancellations });
   const lead = trips.find((x) => !x.cancelled);
-  const win = C.serviceDayWindow(t);
+  const win = C.serviceDayWindow(nowMs);
   // Kampüsten kalkmayan seferler (KM18 15:50 E) burada hiç gösterilmez: kafa karıştırmasın
   const day = C.tripsBetween(svcs, win.start, win.end, state.cancellations).filter((x) => !x.skipsCampus);
-  const past = day.filter((x) => x.ms < t - 60000);
-  const rest = day.filter((x) => x.ms >= t - 60000);
+  const past = day.filter((x) => x.ms < nowMs - 60000);
+  const rest = day.filter((x) => x.ms >= nowMs - 60000);
   const showPast = state.favShowPast.has(route.id);
   const cell = (x) => {
-    const note = x.cancelled ? 'iptal' : x.night ? 'gece' : (x.chips[0] || '');
-    const cls = [x.kind, x.cancelled && 'x', lead && x.key === lead.key && 'now', x.ms < t - 60000 && 'past'].filter(Boolean).join(' ');
+    const note = x.cancelled ? t('cancelled') : x.night ? t('night') : (x.chips[0] || '');
+    const cls = [x.kind, x.cancelled && 'x', lead && x.key === lead.key && 'now', x.ms < nowMs - 60000 && 'past'].filter(Boolean).join(' ');
     return `<li class="${cls}"><time>${x.time}</time><span class="v">${x.kind === 'iett' ? `<svg class="i" aria-hidden="true"><use href="#i-bus"/></svg>${esc(x.line)}` : '<svg class="i" aria-hidden="true"><use href="#i-van"/></svg>Shuttle'}</span>${note ? `<span class="n">${esc(note)}</span>` : ''}</li>`;
   };
-  let list;
-  if (rest.length) {
-    list = `<ul class="fav-grid">${rest.map(cell).join('')}</ul>`;
-  } else {
-    list = '<p class="none">Bugün bu yönde başka sefer yok.</p>';
-  }
+  const list = rest.length
+    ? `<ul class="fav-grid">${rest.map(cell).join('')}</ul>`
+    : `<p class="none">${esc(t('noMoreToday'))}</p>`;
   const pastHtml = past.length
-    ? `<button type="button" class="link past-toggle" data-fav-past="${route.id}">${showPast ? 'Geçmiş seferleri gizle' : `Geçmiş ${past.length} seferi göster`}</button>
+    ? `<button type="button" class="link past-toggle" data-fav-past="${route.id}">${esc(showPast ? t('hidePast') : t('showPast', { n: past.length }))}</button>
        ${showPast ? `<ul class="fav-grid past-grid">${past.map(cell).join('')}</ul>` : ''}`
     : '';
   return `<section class="fav ${lead ? lead.kind : ''}">
     <div class="route-head"><h2><button type="button" class="route-link" data-open-route="${route.id}">${esc(route.name)}</button></h2>${starBtn(route.id)}</div>
     <p class="fav-dir">${esc(dirTitle(route))}</p>
-    ${lead ? leadBlock(lead, t) : '<p class="none">Önümüzdeki günlerde bu yönde sefer yok.</p>'}
-    <h3 class="fav-sub">Bugün kalan seferler</h3>
+    ${lead ? leadBlock(lead, nowMs) : `<p class="none">${esc(t('noTrips'))}</p>`}
+    <h3 class="fav-sub">${esc(t('remainingToday'))}</h3>
     ${list}
     ${pastHtml}
-    ${route.iett ? cancelFoot(route.iett, t) : ''}
+    ${route.iett ? cancelFoot(route.iett, nowMs) : ''}
   </section>`;
 }
 
@@ -329,91 +330,92 @@ function renderFav() {
   const favs = state.favs.map((id) => state.shuttle.routes.find((r) => r.id === id)).filter(Boolean);
   if (!favs.length) {
     return `<div class="fav-empty">
-      <h2>Henüz favorin yok</h2>
-      <p>Sıradaki sekmesinde bir hattın yanındaki yıldıza dokun. Favorin olduğunda uygulama bu sayfayla açılır ve her favori için bugünün bütün seferlerini gösterir.</p>
-      <p><button type="button" class="btn" data-tab-go="next">Sıradaki'ye git</button></p>
+      <h2>${esc(t('favEmptyTitle'))}</h2>
+      <p>${esc(t('favEmptyBody'))}</p>
+      <p><button type="button" class="btn" data-tab-go="next">${esc(t('goNext'))}</button></p>
     </div>`;
   }
-  const t = now();
-  const services = C.buildServices(state.shuttle, km18Data(), state.dir);
-  return `<div class="favs">${favs.map((r) => favCard(r, services.get(r.id), t)).join('')}</div>`;
+  const nowMs = now();
+  const svc = services();
+  return `<div class="favs">${favs.map((r) => favCard(r, svc.get(r.id), nowMs)).join('')}</div>`;
 }
 
 /* ---------------- Program ---------------- */
 
-function programControls(t) {
-  const todayKey = C.dateKeyOf(t);
+function programControls(nowMs) {
+  const todayKey = C.dateKeyOf(nowMs);
   const routes = state.shuttle.routes.map((r) => `<button type="button" class="chip-btn" data-route="${r.id}" aria-pressed="${r.id === state.programRoute}">${esc(r.name)}</button>`).join('');
   const days = [];
   for (let i = 0; i < 7; i++) {
     const k = C.addDays(todayKey, i);
     const { d } = C.parseDateKey(k);
-    const label = i === 0 ? 'Bugün' : i === 1 ? 'Yarın' : C.DAY_SHORT[C.dowOfKey(k)];
-    days.push(`<button type="button" class="day-btn" data-date="${k}" aria-pressed="${k === state.programDate}"><span>${label}</span><b>${d}</b></button>`);
+    const label = i === 0 ? t('today') : i === 1 ? t('tomorrow') : L.dayShort(C.dowOfKey(k));
+    days.push(`<button type="button" class="day-btn" data-date="${k}" aria-pressed="${k === state.programDate}"><span>${esc(label)}</span><b>${d}</b></button>`);
   }
-  return `<div class="pick routes" role="group" aria-label="Güzergâh">${routes}</div>
-    <div class="pick days" role="group" aria-label="Gün">${days.join('')}</div>`;
+  return `<div class="pick routes" role="group" aria-label="${esc(t('routeGroup'))}">${routes}</div>
+    <div class="pick days" role="group" aria-label="${esc(t('dayGroup'))}">${days.join('')}</div>`;
 }
 
-function programList(t) {
+function programList(nowMs) {
   const route = routeById(state.programRoute);
-  const svcs = C.buildServices(state.shuttle, km18Data(), state.dir).get(route.id);
+  const svcs = services().get(route.id);
   const trips = C.dayProgram(svcs, state.programDate, state.cancellations);
-  const nextKey = C.upcoming(svcs, t, { count: 1, graceMs: 0, cancellations: state.cancellations }).find((x) => !x.cancelled)?.key;
-  const head = `<h2 class="prog-title">${esc(dirTitle(route))}<span>${esc(C.fmtDateLong(state.programDate))}</span></h2>`;
-  if (!trips.length) return `${head}<p class="none pad">Bu gün bu yönde sefer yok.</p>`;
+  const nextKey = C.upcoming(svcs, nowMs, { count: 1, graceMs: 0, cancellations: state.cancellations }).find((x) => !x.cancelled)?.key;
+  const head = `<h2 class="prog-title">${esc(dirTitle(route))}<span>${esc(L.fmtDateLong(state.programDate))}</span></h2>`;
+  if (!trips.length) return `${head}<p class="none pad">${esc(t('noTripsDay'))}</p>`;
   const items = trips.map((x) => {
-    const past = x.ms < t - 60000;
+    const past = x.ms < nowMs - 60000;
     const chips = [...x.chips];
-    if (x.night) chips.unshift(C.nightLabel(x.serviceKey));
-    if (x.beyondTerm) chips.push('Program dönemi dışında');
+    if (x.night) chips.unshift(L.nightLabel(x.serviceKey));
+    if (x.beyondTerm) chips.push(t('outOfTerm'));
     const cls = [x.kind, past && 'past', x.cancelled && 'x', x.skipsCampus && 'skip', x.key === nextKey && 'next'].filter(Boolean).join(' ');
-    return `<li class="${cls}"><time>${x.time}</time>${vehicleBadge(x)}${x.cancelled ? '<em class="tag-x">İptal</em>' : ''}${x.key === nextKey ? '<em class="tag-next">Sıradaki</em>' : ''}${chips.length ? `<span class="chips">${chips.map((c) => `<span>${esc(c)}</span>`).join('')}</span>` : ''}</li>`;
+    return `<li class="${cls}"><time>${x.time}</time>${vehicleBadge(x)}${x.cancelled ? `<em class="tag-x">${esc(t('cancelledTag'))}</em>` : ''}${x.key === nextKey ? `<em class="tag-next">${esc(t('nextTag'))}</em>` : ''}${chips.length ? `<span class="chips">${chips.map((c) => `<span>${esc(c)}</span>`).join('')}</span>` : ''}</li>`;
   }).join('');
   return `${head}<ol class="prog">${items}</ol>`;
 }
+
+const fold1 = (x) => I.fold(x).replace(/[^a-z0-9]/g, '');
 
 function programNotes() {
   const route = routeById(state.programRoute);
   const dirData = route[state.dir];
   const notes = state.shuttle.notes;
   const used = new Set();
-  for (const t of ['weekday', 'saturday', 'sunday']) {
-    for (const e of dirData[t]) C.parseEntry(e).notes.forEach((n) => used.add(n));
+  for (const day of ['weekday', 'saturday', 'sunday']) {
+    for (const e of dirData[day]) C.parseEntry(e).notes.forEach((n) => used.add(n));
   }
-  const info = (dirData.info || []).map((n) => `<p>${esc(notes[n]?.text)}</p>`).join('');
+  const info = (dirData.info || []).map((n) => `<p>${esc(L.pick(notes[n], 'text'))}</p>`).join('');
   const special = [...used].filter((n) => notes[n]?.chip && !(dirData.info || []).includes(Number(n)))
     .map((n) => {
-      const t = notes[n].text;
-      return fold1(t).startsWith(fold1(notes[n].chip)) ? `<p>${esc(t)}</p>` : `<p><strong>${esc(notes[n].chip)}:</strong> ${esc(t)}</p>`;
+      const text = L.pick(notes[n], 'text');
+      const chip = L.pick(notes[n], 'chip');
+      return fold1(text).startsWith(fold1(chip)) ? `<p>${esc(text)}</p>` : `<p><strong>${esc(chip)}:</strong> ${esc(text)}</p>`;
     }).join('');
-  const stops = route.stops.map((s) => `<li><a href="https://www.google.com/maps?q=${s.lat},${s.lng}" target="_blank" rel="noopener">${esc(s.name)}</a></li>`).join('');
+  const stops = route.stops.map((s) => `<li>${link(`https://www.google.com/maps?q=${s.lat},${s.lng}`, L.pick(s, 'name'))}</li>`).join('');
   const hasRes = [...used].some((n) => notes[n]?.reservation);
   let iett = '';
   if (route.iett) {
     const fb = state.km18Fallback;
     const standing = state.analyses.filter((a) => a.standing && !a.ann.fake);
     iett = `<h3>${vehicleBadge({ kind: 'iett', line: route.iett })}</h3>
-      <p>${esc(state.dir === 'toCampus' ? fb.toCampusInfo : fb.fromCampusInfo)}</p>
-      ${standing.length ? `<p class="sub">İETT hat notları</p>${standing.map((a) => `<p class="note-old">${esc(a.ann.text)}</p>`).join('')}` : ''}
-      <p><a href="${esc(CONFIG.iettRouteUrl)}" target="_blank" rel="noopener">İETT'de KM18 sayfası</a></p>`;
+      <p>${esc(L.pick(fb, state.dir === 'toCampus' ? 'toCampusInfo' : 'fromCampusInfo'))}</p>
+      ${standing.length ? `<p class="sub">${esc(t('iettNotes'))}</p>${standing.map((a) => `<p class="note-old" lang="tr">${esc(a.ann.text)}</p>`).join('')}` : ''}
+      <p>${link(CONFIG.iettRouteUrl, t('iettPage'))}</p>`;
   }
   return `<div class="notes">
     <h3>${vehicleBadge({ kind: 'shuttle' })}</h3>
     ${info}${special}
-    ${hasRes ? `<p><a href="${esc(state.shuttle.reservationUrl)}" target="_blank" rel="noopener">Shuttle rezervasyon sistemi</a></p>` : ''}
-    <p class="sub">Duraklar (haritada aç)</p><ul class="stops">${stops}</ul>
+    ${hasRes ? `<p>${link(state.shuttle.reservationUrl, t('bookingSystem'))}</p>` : ''}
+    <p class="sub">${esc(t('stopsMap'))}</p><ul class="stops">${stops}</ul>
     ${iett}
   </div>`;
 }
 
-const fold1 = (x) => I.fold(x).replace(/[^a-z0-9]/g, '');
-
 function renderProgram() {
-  const t = now();
-  const todayKey = C.dateKeyOf(t);
+  const nowMs = now();
+  const todayKey = C.dateKeyOf(nowMs);
   if (!state.programDate || state.programDate < todayKey || state.programDate > C.addDays(todayKey, 6)) state.programDate = todayKey;
-  return `<div class="program">${programControls(t)}<div id="program-list">${programList(t)}</div>${programNotes()}</div>`;
+  return `<div class="program">${programControls(nowMs)}<div id="program-list">${programList(nowMs)}</div>${programNotes()}</div>`;
 }
 
 /* ---------------- Bilgi ---------------- */
@@ -423,104 +425,109 @@ function renderInfo() {
   const k = state.km18;
   const a = state.ann;
   const sc = state.shuttleCheck;
-  const { d: d1, mo: m1, y: y1 } = C.parseDateKey(term.validFrom);
-  const { d: d2, mo: m2, y: y2 } = C.parseDateKey(term.validTo);
   const fb = state.km18Fallback;
   const kmLine = k.source === 'bundled'
-    ? `${esc(fmtKey(fb.checked))} tarihli İETT tarifesi.${fb.updatedBy ? ' İBB\'nin tarife servisiyle her gün karşılaştırılıp güncelleniyor.' : ''}`
-    : `İBB'den alındı, ${ago(k.fetchedAt)}.`;
+    ? t('kmBundled', { date: L.fmtDate(fb.checked), auto: !!fb.updatedBy })
+    : t('kmApi', { ago: ago(k.fetchedAt) });
   const annLine = a.fetchedAt
-    ? `Son kontrol ${ago(a.fetchedAt)}${a.error ? ', şu an alınamıyor' : ''}. ${a.items.length ? `KM18 için ${a.items.length} duyuru var.` : 'KM18 için duyuru yok.'}`
-    : 'İBB duyuru servisine ulaşılamadı; iptal edilen seferler görünmez.';
-  let scLine = 'Henüz denenmedi.';
+    ? t('annLine', { ago: ago(a.fetchedAt), failing: !!a.error, n: a.items.length })
+    : t('annNone');
+  let scLine = t('siteNotTried');
   if (sc) {
     scLine = sc.ok
-      ? (sc.changed ? `Sitede farklı bir program görünüyor: ${esc(sc.current)}.` : `Sitedeki program uygulamadakiyle aynı (${ago(sc.checkedAt)}).`)
-      : `Okul sitesi uygulamanın sayfayı okumasına izin vermiyor; saatler uygulamanın içinden gösteriliyor (${ago(sc.checkedAt)}).`;
+      ? (sc.changed ? t('siteChanged', { name: sc.current }) : t('siteSame', { ago: ago(sc.checkedAt) }))
+      : t('siteBlocked', { ago: ago(sc.checkedAt) });
   }
-  const debugLink = LS.get('debugUnlocked') ? '<p><button type="button" class="link" data-tab-go="debug">Debug ekranı</button></p>' : '';
+  const debugLink = LS.get('debugUnlocked') ? `<p><button type="button" class="link" data-tab-go="debug">${esc(t('debugLink'))}</button></p>` : '';
+  const langBtn = (code, label) => `<button type="button" class="chip-btn" data-lang="${code}" aria-pressed="${state.lang === code}" lang="${code}">${label}</button>`;
   return `<div class="info">
     <section>
-      <h2>Bu uygulama</h2>
-      <p>Kampüse gelen ve kampüsten kalkan shuttle'ları ve İETT KM18 otobüsünü tek ekranda gösterir. Kurtköy satırında ikisi birlikte, hangisi önce kalkıyorsa o üstte.</p>
-      <p>Bir hattın yanındaki yıldıza dokunarak onu favorilere ekleyebilirsin. Favorin varsa uygulama Favoriler sayfasıyla açılır.</p>
-      ${state.installPrompt ? '<p><button type="button" class="btn" id="install">Uygulamayı yükle</button></p>' : ''}
+      <h2>${esc(t('langTitle'))}</h2>
+      <div class="row" role="group" aria-label="${esc(t('langTitle'))}">${langBtn('tr', 'Türkçe')}${langBtn('en', 'English')}</div>
     </section>
     <section>
-      <h2>Veriler</h2>
+      <h2>${esc(t('aboutTitle'))}</h2>
+      <p>${esc(t('aboutBody'))}</p>
+      <p>${esc(t('aboutFav'))}</p>
+      ${state.installPrompt ? `<p><button type="button" class="btn" id="install">${esc(t('install'))}</button></p>` : ''}
+    </section>
+    <section>
+      <h2>${esc(t('dataTitle'))}</h2>
       <dl>
-        <dt>Shuttle programı</dt><dd>${d1} ${C.MONTHS[m1]}${y1 !== y2 ? ` ${y1}` : ''} – ${d2} ${C.MONTHS[m2]} ${y2} dönemi. ${esc(fmtKey(term.checked))} tarihinde okul sitesinden alındı.</dd>
-        <dt>Okul sitesi kontrolü</dt><dd>${scLine}</dd>
-        <dt>KM18 tarifesi</dt><dd>${kmLine}</dd>
-        <dt>KM18 iptal ve duyurular</dt><dd>${annLine}</dd>
+        <dt>${esc(t('shuttleProgram'))}</dt><dd>${esc(t('termLine', { range: L.fmtRange(term.validFrom, term.validTo), checked: L.fmtDate(term.checked) }))}</dd>
+        <dt>${esc(t('siteCheck'))}</dt><dd>${esc(scLine)}</dd>
+        <dt>${esc(t('kmTimetable'))}</dt><dd>${esc(kmLine)}</dd>
+        <dt>${esc(t('kmAnn'))}</dt><dd>${esc(annLine)}</dd>
       </dl>
-      <p><button type="button" class="btn" id="refresh-now">İETT bilgisini şimdi yenile</button></p>
+      <p><button type="button" class="btn" id="refresh-now">${esc(t('refreshNow'))}</button></p>
     </section>
     <section>
-      <h2>Bağlantılar</h2>
+      <h2>${esc(t('linksTitle'))}</h2>
       <ul class="links">
-        <li><a href="${esc(state.shuttle.source)}" target="_blank" rel="noopener">Okulun shuttle sayfası</a></li>
-        <li><a href="${esc(state.shuttle.reservationUrl)}" target="_blank" rel="noopener">Shuttle rezervasyon sistemi</a></li>
-        <li><a href="${esc(CONFIG.iettRouteUrl)}" target="_blank" rel="noopener">İETT KM18 sayfası</a></li>
+        <li>${link(state.shuttle.source, t('linkShuttle'))}</li>
+        <li>${link(state.shuttle.reservationUrl, t('bookingSystem'))}</li>
+        <li>${link(CONFIG.iettRouteUrl, t('linkIett'))}</li>
       </ul>
     </section>
     <section>
-      <h2>Telefona kurmak</h2>
-      <p>Android'de Chrome menüsünden "Ana ekrana ekle" ya da "Uygulamayı yükle". iPhone'da Safari'de Paylaş düğmesi, sonra "Ana Ekrana Ekle".</p>
+      <h2>${esc(t('installTitle'))}</h2>
+      <p>${esc(t('installBody'))}</p>
     </section>
     <section>
-      <h2>Kaynaklar ve lisans</h2>
-      <p>KM18 tarifesi ve duyuruları İETT'nin İBB Açık Veri Portalı'nda yayımladığı web servislerinden alınır (<a href="https://data.ibb.gov.tr/dataset/iett-planlanan-sefer-saati-web-servisi" target="_blank" rel="noopener">Planlanan Sefer Saati</a>, <a href="https://data.ibb.gov.tr/dataset/iett-duyurular-web-servisi" target="_blank" rel="noopener">Duyurular</a>) ve <a href="https://data.ibb.gov.tr/license" target="_blank" rel="noopener">İBB Açık Veri Lisansı</a> kapsamında kullanılır.</p>
-      <p>Shuttle saatleri <a href="${esc(state.shuttle.source)}" target="_blank" rel="noopener">Sabancı Üniversitesi'nin shuttle sayfasından</a> alınmıştır; durak açıklamaları kısaltılarak yeniden yazılmıştır.</p>
-      <p>Bu uygulama Sabancı Üniversitesi, İETT ya da İBB'nin resmi uygulaması değildir ve onlar tarafından onaylanmamıştır. Saatler bilgi amaçlıdır; kesin bilgi için resmi kaynaklara bak.</p>
-      <p>Yazı tipi: Barlow Condensed, SIL Open Font License.</p>
+      <h2>${esc(t('sourcesTitle'))}</h2>
+      <p>${t('sourcesIett')}</p>
+      <p>${t('sourcesShuttle', { url: esc(state.shuttle.source) })}</p>
+      <p>${esc(t('disclaimer'))}</p>
+      <p>${esc(t('font'))}</p>
     </section>
     <section>
-      <h2>Gizlilik</h2>
-      <p>Uygulama kişisel veri toplamaz: hesap, çerez, reklam ya da kullanım takibi yok. Seçtiğin yön gibi tercihler ve son indirilen İETT verisi yalnızca bu cihazda saklanır, hiçbir yere gönderilmez.</p>
-      <p>Veri almak için İBB'nin ve Sabancı Üniversitesi'nin sunucularına, uygulama güncellemesi için GitHub Pages'e bağlanır. Her web sitesinde olduğu gibi bu bağlantılarda cihazının IP adresi o sunuculara ulaşır.</p>
+      <h2>${esc(t('privacyTitle'))}</h2>
+      <p>${esc(t('privacy1'))}</p>
+      <p>${esc(t('privacy2'))}</p>
     </section>
-    <p class="version"><button type="button" id="version">Sürüm ${CONFIG.version}</button></p>
-    ${debugLink}
+    <footer class="credits">
+      <p class="credits-name">${esc(t('appName'))}</p>
+      <p><button type="button" id="version">${esc(t('version', { v: CONFIG.version, date: L.fmtDate(CONFIG.buildDate) }))}</button></p>
+      <p>${esc(t('builtWith', { model: CONFIG.builtWith.replace(/ /g, '\u00a0') }))}</p>
+      ${debugLink}
+    </footer>
   </div>`;
-}
-
-function fmtKey(key) {
-  const { y, mo, d } = C.parseDateKey(key);
-  return `${d} ${C.MONTHS[mo]} ${y}`;
 }
 
 /* ---------------- Bantlar ---------------- */
 
 function renderBanners() {
-  const t = now();
+  const nowMs = now();
   const out = [];
   if (state.sim) {
-    out.push(`<div class="banner sim"><p>Test saati: ${esc(C.fmtDateLong(C.dateKeyOf(t)))} ${C.fmtClock(t)}${state.sim.running ? '' : ' (durduruldu)'}</p><button type="button" data-action="real-time">Gerçek saate dön</button></div>`);
+    out.push(`<div class="banner sim"><p>${esc(t('simBanner', { when: `${L.fmtDateLong(C.dateKeyOf(nowMs))} ${C.fmtClock(nowMs)}`, stopped: !state.sim.running }))}</p><button type="button" data-action="real-time">${esc(t('realTime'))}</button></div>`);
   }
   if (state.updateReady) {
-    out.push('<div class="banner info"><p>Uygulamanın yeni sürümü hazır.</p><button type="button" data-action="reload">Yenile</button></div>');
+    out.push(`<div class="banner info"><p>${esc(t('updateReady'))}</p><button type="button" data-action="reload">${esc(t('reload'))}</button></div>`);
   }
   if (state.tab === 'next' || state.tab === 'program' || state.tab === 'fav') {
-    const todayKey = C.dateKeyOf(t);
+    const todayKey = C.dateKeyOf(nowMs);
     const term = state.shuttle.term;
     if (todayKey > term.validTo) {
-      out.push(`<div class="banner warn"><p>Shuttle programının süresi ${esc(fmtKey(term.validTo))} tarihinde doldu. Saatler değişmiş olabilir; <a href="${esc(state.shuttle.source)}" target="_blank" rel="noopener">okul sitesine bak</a>.</p></div>`);
+      out.push(`<div class="banner warn"><p>${t('termExpired', { date: esc(L.fmtDate(term.validTo)), link: link(state.shuttle.source, t('termExpiredLink')) })}</p></div>`);
     } else if (state.shuttleCheck?.ok && state.shuttleCheck.changed) {
-      out.push(`<div class="banner warn"><p>Okul sitesinde yeni bir shuttle programı var: ${esc(state.shuttleCheck.current)}. Uygulamadaki saatler eski olabilir.</p></div>`);
+      out.push(`<div class="banner warn"><p>${esc(t('siteNewTerm', { name: state.shuttleCheck.current }))}</p></div>`);
     }
     const alerts = state.analyses.filter((x) => !x.standing && !x.expired && !state.dismissed.has(x.ann.id));
     for (const x of alerts) {
       const { ann, analysis } = x;
-      const when = Number.isFinite(ann.updatedMs) ? `${C.fmtClock(ann.updatedMs)}${C.dateKeyOf(ann.updatedMs) !== todayKey ? `, ${fmtKey(C.dateKeyOf(ann.updatedMs))}` : ''}` : '';
+      const when = Number.isFinite(ann.updatedMs) ? `${C.fmtClock(ann.updatedMs)}${C.dateKeyOf(ann.updatedMs) !== todayKey ? `, ${L.fmtDate(C.dateKeyOf(ann.updatedMs))}` : ''}` : '';
       const lead = analysis.isCancel
-        ? (analysis.items.length ? `İptal: ${analysis.items.map((i) => `${i.time} (${i.dir === 'fromCampus' ? 'kampüsten' : 'kampüse'})`).join(', ')}` : 'İptal duyurusu')
-        : 'Duyuru';
+        ? (analysis.items.length
+          ? t('annCancel', { list: analysis.items.map((i) => `${i.time} (${i.dir === 'fromCampus' ? t('fromCampusShort') : t('toCampusShort')})`).join(', ') })
+          : t('annCancelGeneric'))
+        : t('annNotice');
+      const meta = [ann.fake ? t('testAnn') : 'İETT', when, t('origTurkish')].filter(Boolean).join(' · ');
       out.push(`<div class="banner ${analysis.isCancel ? 'cancel' : 'note'}${ann.fake ? ' fake' : ''}">
         <p><strong>KM18 · ${esc(lead)}</strong></p>
-        <p>${esc(ann.text)}</p>
-        <p class="meta">${ann.fake ? 'Test duyurusu · ' : 'İETT · '}${esc(when)}</p>
-        <button type="button" data-dismiss="${esc(ann.id)}">Gizle</button>
+        <p lang="tr">${esc(ann.text)}</p>
+        <p class="meta">${esc(meta)}</p>
+        <button type="button" data-dismiss="${esc(ann.id)}">${esc(t('dismiss'))}</button>
       </div>`);
     }
   }
@@ -529,10 +536,18 @@ function renderBanners() {
 
 /* ---------------- Ana çizim ---------------- */
 
+/** index.html'deki sabit metinler (üst bant, sekmeler) */
+function applyStatic() {
+  document.documentElement.lang = state.lang;
+  document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
+}
+
 export function render() {
   if (!state.shuttle) return;
-  const t = now();
-  $('#clock').textContent = C.fmtClock(t);
+  const nowMs = now();
+  applyStatic();
+  $('#clock').textContent = C.fmtClock(nowMs);
   document.querySelectorAll('.dir button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.dir === state.dir)));
   document.querySelectorAll('.tabs button').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === state.tab ? 'page' : 'false'));
   document.body.dataset.tab = state.tab;
@@ -552,19 +567,19 @@ export function render() {
 /** Saniyelik akışta sadece değişen yerleri yenile (debug ekranındaki formlar silinmesin). */
 function tick() {
   if (!state.shuttle) return;
-  const t = now();
+  const nowMs = now();
   recompute();
-  $('#clock').textContent = C.fmtClock(t);
+  $('#clock').textContent = C.fmtClock(nowMs);
   if (state.tab === 'next' || state.tab === 'fav') {
     $('#view').innerHTML = state.tab === 'fav' ? renderFav() : renderNext();
     renderBanners();
   } else if (state.tab === 'program') {
     const list = $('#program-list');
-    if (list) list.innerHTML = programList(t);
+    if (list) list.innerHTML = programList(nowMs);
     renderBanners();
   } else if (state.tab === 'debug') {
     const el = $('#dbg-now');
-    if (el) el.textContent = `${C.fmtDateLong(C.dateKeyOf(t))} ${C.fmtClock(t)}:${String(C.wall(t).s).padStart(2, '0')}`;
+    if (el) el.textContent = `${C.fmtDateLong(C.dateKeyOf(nowMs))} ${C.fmtClock(nowMs)}:${String(C.wall(nowMs).s).padStart(2, '0')}`;
     renderBanners();
   }
 }
@@ -590,12 +605,14 @@ function bind() {
       const on = state.favs.includes(id);
       state.favs = on ? state.favs.filter((x) => x !== id) : [...state.favs, id];
       LS.set('favs', state.favs);
-      toast(on ? 'Favorilerden çıkarıldı' : 'Favorilere eklendi');
+      toast(on ? t('favRemoved') : t('favAdded'));
       render();
     } else if (d.favPast) {
       if (state.favShowPast.has(d.favPast)) state.favShowPast.delete(d.favPast);
       else state.favShowPast.add(d.favPast);
       render();
+    } else if (d.lang) {
+      setLanguage(d.lang);
     } else if (d.dir) {
       state.dir = d.dir;
       LS.set('dir', state.dir);
@@ -621,21 +638,21 @@ function bind() {
       render();
     } else if (d.action === 'real-time') {
       setSim(null);
-      toast('Gerçek saate dönüldü');
+      toast(t('realTimeBack'));
     } else if (d.action === 'reload') {
       location.reload();
     } else if (el.id === 'refresh' || el.id === 'refresh-now') {
-      refreshAll(true).then(() => toast(state.ann.error ? 'İETT servisine ulaşılamadı' : 'Güncellendi'));
+      refreshAll(true).then(() => toast(state.ann.error ? t('iettFail') : t('updated')));
     } else if (el.id === 'install' && state.installPrompt) {
       state.installPrompt.prompt();
       state.installPrompt = null;
     } else if (el.id === 'version') {
-      const t = Date.now();
-      versionTaps = versionTaps.filter((x) => t - x < 4000).concat(t);
+      const tm = Date.now();
+      versionTaps = versionTaps.filter((x) => tm - x < 4000).concat(tm);
       if (versionTaps.length >= 7) {
         versionTaps = [];
         LS.set('debugUnlocked', true);
-        toast('Debug ekranı açıldı');
+        toast(t('debugOpened'));
         setTab('debug');
       }
     }
@@ -690,10 +707,11 @@ async function loadJson(path) {
 }
 
 async function init() {
+  applyStatic();
   try {
     [state.shuttle, state.km18Fallback] = await Promise.all([loadJson('./data/shuttle.json'), loadJson('./data/km18.json')]);
   } catch (e) {
-    $('#view').innerHTML = `<p class="none pad">Veri dosyaları yüklenemedi (${esc(e.message)}). İnternete bağlanıp sayfayı yenile.</p>`;
+    $('#view').innerHTML = `<p class="none pad">${esc(t('dataLoadFail', { msg: e.message }))}</p>`;
     return;
   }
   applyCachedPlan();
