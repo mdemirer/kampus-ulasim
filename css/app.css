@@ -42,14 +42,15 @@
   --band-soft: #2a4a78;
   --shuttle: #1f4e8c;
   --shuttle-tint: #e3ecf8;
-  --iett: #0a766c;
-  --iett-tint: #dcf1ee;
-  --cancel: #b42a22;
+  --iett: #b5400b;
+  --iett-tint: #fbe7dc;
+  --cancel: #9f1d1d;
   --cancel-tint: #fbe6e4;
   --warn-ink: #6e4600;
   --warn-tint: #fdf1d3;
   --focus: #2a6fdb;
-  --star: #c48600;
+  --star: #13315c;
+  --ok: #1e7d3c;
   --sign: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
   --text: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   color-scheme: light dark;
@@ -67,14 +68,15 @@
     --band-soft: #1d3554;
     --shuttle: #8ab6ef;
     --shuttle-tint: #1a2c45;
-    --iett: #5fcfc1;
-    --iett-tint: #12332f;
-    --cancel: #ff8a80;
+    --iett: #ffa15a;
+    --iett-tint: #3a2216;
+    --cancel: #ff6e7f;
     --cancel-tint: #3a1a18;
     --warn-ink: #ffd88a;
     --warn-tint: #352a10;
     --focus: #7fb0ff;
-    --star: #f2c14e;
+    --star: #e6edf5;
+    --ok: #6fd08f;
   }
 }
 
@@ -335,7 +337,7 @@ body[data-tab="info"] .dir, body[data-tab="debug"] .dir { display: none; }
 .dbg h3 { margin: 12px 0 6px; font-size: .95rem; }
 .dbg p { margin: 0 0 8px; }
 .dbg .muted, .muted { color: var(--muted); font-size: .88rem; }
-.dbg .ok, .ok { color: var(--iett); }
+.dbg .ok, .ok { color: var(--ok); }
 .dbg .bad, .bad { color: var(--cancel); }
 .dbg-form { display: grid; gap: 10px; margin: 10px 0; }
 .dbg-form label { display: grid; gap: 4px; font-size: .9rem; }
@@ -351,7 +353,7 @@ body[data-tab="info"] .dir, body[data-tab="debug"] .dir { display: none; }
 .presets .chip-btn span { font: 400 .78rem/1.3 var(--text); color: var(--muted); }
 .dbg-table { width: 100%; border-collapse: collapse; font-size: .85rem; margin: 6px 0 10px; }
 .dbg-table th, .dbg-table td { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
-.dbg-table tr.ok td:first-child { color: var(--iett); font-weight: 600; }
+.dbg-table tr.ok td:first-child { color: var(--ok); font-weight: 600; }
 .dbg-table tr.bad td:first-child { color: var(--cancel); font-weight: 600; }
 .dbg-table pre { white-space: pre-wrap; word-break: break-all; font-size: .75rem; max-height: 160px; overflow: auto; }
 .dbg-list { padding-left: 18px; margin: 0; }

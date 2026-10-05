@@ -2,7 +2,7 @@
 // Uygulama kodunu değiştirdiğinde VERSION'ı artır; telefonlar bir sonraki açılışta yeni sürümü alır.
 // İBB ve okul sitesi istekleri önbelleğe alınmaz, doğrudan ağa gider.
 
-const VERSION = 'v1.1.0';
+const VERSION = 'v1.2.0';
 const CACHE = `kampus-${VERSION}`;
 
 const SHELL = [
