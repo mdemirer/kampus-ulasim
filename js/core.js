@@ -228,3 +228,14 @@ export function buildServices(shuttle, km18, dir) {
   }
   return byRoute;
 }
+
+/**
+ * "Bugün" penceresi: 04:00'ten ertesi gün 04:00'e kadar. Gece 01:30'da hâlâ önceki günün
+ * penceresindeyiz, böylece Cuma gecesinin 00:45 ve 02:00 seferleri "bugün"ün sonunda görünür.
+ */
+export function serviceDayWindow(nowMs) {
+  const today = dateKeyOf(nowMs);
+  const key = wall(nowMs).h * 60 + wall(nowMs).mi < NIGHT_CUTOFF_MIN ? addDays(today, -1) : today;
+  const start = midnightOf(key) + NIGHT_CUTOFF_MIN * 60000;
+  return { key, start, end: start + DAY_MS - 1 };
+}

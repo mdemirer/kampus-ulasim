@@ -88,3 +88,12 @@ test('Geri sayım ve gece etiketi', () => {
   assert.equal(nightLabel('2026-10-09'), "Cuma'yı Cumartesi'ye bağlayan gece");
   assert.equal(nightLabel('2026-10-11'), "Pazar'ı Pazartesi'ye bağlayan gece");
 });
+
+test('Favoriler için "bugün" penceresi 04:00–04:00', async () => {
+  const { serviceDayWindow, tripsBetween } = await import('../js/core.js');
+  assert.equal(serviceDayWindow(wallToMs('2026-10-10T01:30')).key, '2026-10-09');
+  assert.equal(serviceDayWindow(wallToMs('2026-10-05T10:00')).key, '2026-10-05');
+  const w = serviceDayWindow(wallToMs('2026-10-09T23:50'));
+  const trips = tripsBetween(svc('toCampus', 'kadikoy'), w.start, w.end).map((x) => `${dateKeyOf(x.ms).slice(5)} ${x.time}`);
+  assert.deepEqual(trips, ['10-09 07:00', '10-09 09:00', '10-09 15:00', '10-10 02:00']);
+});

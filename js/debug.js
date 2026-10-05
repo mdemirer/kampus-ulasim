@@ -60,7 +60,7 @@ function planSection(ctx) {
   }
   return `<section class="dbg">
     <h2>KM18 tarifesi</h2>
-    <p>Kaynak: <b>${{ bundled: 'gömülü yedek', api: 'İBB (bu oturum)', cache: 'İBB (önbellek)' }[k.source]}</b>${k.fetchedAt ? ` · ${ago(k.fetchedAt)}` : ''}${k.strategy ? ` · ${esc(k.strategy)}` : ''}</p>
+    <p>Kaynak: <b>${{ bundled: `data/km18.json (${esc(state.km18Fallback.checked)}${state.km18Fallback.updatedBy ? ', GitHub işi günceller' : ''})`, api: 'İBB, telefondan (bu oturum)', cache: 'İBB, telefondan (önbellek)' }[k.source]}</b>${k.fetchedAt ? ` · ${ago(k.fetchedAt)}` : ''}${k.strategy ? ` · ${esc(k.strategy)}` : ''}</p>
     ${k.mappingBy ? `<p>Yön eşlemesi: ${esc(k.mappingBy)}</p>` : ''}
     ${k.error ? `<p class="bad">Son hata: ${esc(k.error)}</p>` : ''}
     <table class="dbg-table"><thead><tr><th>Yön</th><th>Gün</th><th>Sefer</th><th>Gömülüye göre fark</th></tr></thead><tbody>${rows.join('')}</tbody></table>

@@ -1,6 +1,6 @@
 // Uygulama ayarları. Değiştirdikten sonra sw.js içindeki VERSION'ı da artır.
 export const CONFIG = {
-  version: '1.0.2',
+  version: '1.1.0',
   line: 'KM18',
 
   ibb: {

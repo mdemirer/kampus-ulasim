@@ -47,6 +47,8 @@ export const state = {
   dir: LS.get('dir', 'fromCampus'),
   tab: 'next',
   programRoute: LS.get('programRoute', 'kurtkoy'),
+  favs: LS.get('favs', []),
+  favShowPast: new Set(),
   programDate: null,
   sim: LS.get('sim', null),
   fakeAnns: LS.get('fakeAnns', []),
@@ -54,6 +56,8 @@ export const state = {
   shuttleCheck: LS.get('shuttleCheck', null),
   attempts: { plan: [], duyuru: [] },
   updateReady: false,
+  swReg: null,
+  resumedAt: Date.now(),
   installPrompt: null,
   busy: false,
 };
@@ -107,7 +111,9 @@ function applyCachedPlan() {
 export async function refreshPlan(force = false) {
   const c = LS.get('plan');
   if (!force && c && Date.now() - c.fetchedAt < CONFIG.refresh.planMs) return;
-  if (!force && state.km18.failedAt && Date.now() - state.km18.failedAt < 60 * 60000) return;
+  // İBB tarife servisi tarayıcıdan gelen isteklere şu an izin vermiyor (CORS); günde bir denemek yeterli
+  const failAt = LS.get('planFailAt');
+  if (!force && failAt && Date.now() - failAt < 24 * 3600000) return;
   const r = await I.callIbb(
     { key: 'plan', url: CONFIG.ibb.planUrl, method: CONFIG.ibb.planMethod, params: { HatKodu: CONFIG.line } },
     { ns: CONFIG.ibb.soapNamespace, timeoutMs: CONFIG.ibb.timeoutMs, proxyUrl: proxyUrl(), preferred: LS.get('strat.plan') },
@@ -119,14 +125,15 @@ export async function refreshPlan(force = false) {
       const entry = { fetchedAt: Date.now(), strategy: r.strategy, lists: p.lists, mappingBy: p.mappingBy, rows: p.rows };
       LS.set('plan', entry);
       LS.set('strat.plan', r.strategy);
+      LS.del('planFailAt');
       state.km18 = { ...entry, source: 'api', error: null };
     } catch (e) {
       state.km18.error = e.message;
-      state.km18.failedAt = Date.now();
+      LS.set('planFailAt', Date.now());
     }
   } else {
-    state.km18.error = 'İBB tarife servisine ulaşılamadı';
-    state.km18.failedAt = Date.now();
+    state.km18.error = 'İBB tarife servisine telefondan ulaşılamadı';
+    LS.set('planFailAt', Date.now());
   }
 }
 
@@ -201,28 +208,42 @@ function dirTitle(route) {
 
 /* ---------------- Sıradaki ---------------- */
 
+function starBtn(routeId) {
+  const on = state.favs.includes(routeId);
+  return `<button type="button" class="star" data-fav="${routeId}" aria-pressed="${on}" aria-label="${on ? 'Favorilerden çıkar' : 'Favorilere ekle'}"><svg class="i" aria-hidden="true"><use href="#i-star"/></svg></button>`;
+}
+
+/** Büyük geri sayım + saat + araç + notlar. Sıradaki ve Favoriler sayfası aynı bloğu kullanır. */
+function leadBlock(lead, t) {
+  const diff = lead.ms - t;
+  const wl = whenLabel(lead, t);
+  const cd = C.countdown(lead.ms, t);
+  const asClock = !(diff < 10 * 3600000 && cd.big);
+  const big = asClock
+    ? `<b>${C.fmtClock(lead.ms)}</b>`
+    : `<b${cd.big.length > 3 ? ' class="word"' : ''}>${esc(cd.big)}</b>${cd.unit ? `<span class="unit">${cd.unit}</span>` : ''}`;
+  const chips = [...lead.chips];
+  if (lead.beyondTerm) chips.push('Program dönemi dışında');
+  return `<div class="lead">
+      <div class="count">${big}</div>
+      <div class="meta">
+        <div class="when">${asClock ? '' : `<time>${lead.time}</time>`}${wl ? `<span class="d${asClock ? ' big-d' : ''}">${esc(wl)}</span>` : ''}${vehicleBadge(lead)}</div>
+        ${chips.length ? `<p class="chips">${chips.map((c) => `<span>${esc(c)}</span>`).join('')}</p>` : ''}
+        ${lead.reservation ? `<p class="res"><a href="${esc(state.shuttle.reservationUrl)}" target="_blank" rel="noopener">Rezervasyon yap</a></p>` : ''}
+      </div>
+    </div>`;
+}
+
 function routeRow(route, trips, t) {
   const leadIdx = trips.findIndex((x) => !x.cancelled);
   const lead = trips[leadIdx];
-  const name = `<h2><button type="button" class="route-link" data-open-route="${route.id}">${esc(route.name)}</button></h2>`;
+  const head = `<div class="route-head"><h2><button type="button" class="route-link" data-open-route="${route.id}">${esc(route.name)}</button></h2>${starBtn(route.id)}</div>`;
   if (!lead) {
-    return `<section class="route empty">${name}<p class="none">Önümüzdeki günlerde bu yönde sefer yok.</p></section>`;
+    return `<section class="route empty">${head}<p class="none">Önümüzdeki günlerde bu yönde sefer yok.</p></section>`;
   }
   const before = trips.slice(0, leadIdx);
   // Seyrek hatlarda günler sonrasını sıralamak gürültü olur: en fazla 24 saat ileriyi göster
   const later = trips.slice(leadIdx + 1).filter((x) => x.ms < t + C.DAY_MS);
-  const diff = lead.ms - t;
-  const wl = whenLabel(lead, t);
-  const cd = C.countdown(lead.ms, t);
-  let big;
-  const asClock = !(diff < 10 * 3600000 && cd.big);
-  if (!asClock) {
-    big = `<b${cd.big.length > 3 ? ' class="word"' : ''}>${esc(cd.big)}</b>${cd.unit ? `<span class="unit">${cd.unit}</span>` : ''}`;
-  } else {
-    big = `<b>${C.fmtClock(lead.ms)}</b>`;
-  }
-  const chips = [...lead.chips];
-  if (lead.beyondTerm) chips.push('Program dönemi dışında');
   const cancelLine = before.length
     ? `<p class="cancelled-line">${before.map((x) => `<s>${x.time}</s> ${esc(x.line || 'Shuttle')} iptal`).join(', ')}</p>`
     : '';
@@ -234,16 +255,9 @@ function routeRow(route, trips, t) {
     : '';
   const foot = route.iett ? cancelFoot(route.iett, t) : '';
   return `<section class="route ${lead.kind}">
-    ${name}
+    ${head}
     ${cancelLine}
-    <div class="lead">
-      <div class="count">${big}</div>
-      <div class="meta">
-        <div class="when">${asClock ? '' : `<time>${lead.time}</time>`}${wl ? `<span class="d${asClock ? ' big-d' : ''}">${esc(wl)}</span>` : ''}${vehicleBadge(lead)}</div>
-        ${chips.length ? `<p class="chips">${chips.map((c) => `<span>${esc(c)}</span>`).join('')}</p>` : ''}
-        ${lead.reservation ? `<p class="res"><a href="${esc(state.shuttle.reservationUrl)}" target="_blank" rel="noopener">Rezervasyon yap</a></p>` : ''}
-      </div>
-    </div>
+    ${leadBlock(lead, t)}
     ${laterHtml}
     ${foot}
   </section>`;
@@ -272,6 +286,57 @@ function renderNext() {
   const services = C.buildServices(state.shuttle, km18Data(), state.dir);
   const rows = state.shuttle.routes.map((r) => routeRow(r, C.upcoming(services.get(r.id), t, { count: 4, cancellations: state.cancellations }), t));
   return `<div class="board">${rows.join('')}</div>`;
+}
+
+/* ---------------- Favoriler ---------------- */
+
+function favCard(route, svcs, t) {
+  const trips = C.upcoming(svcs, t, { count: 1, cancellations: state.cancellations });
+  const lead = trips.find((x) => !x.cancelled);
+  const win = C.serviceDayWindow(t);
+  // Kampüsten kalkmayan seferler (KM18 15:50 E) burada hiç gösterilmez: kafa karıştırmasın
+  const day = C.tripsBetween(svcs, win.start, win.end, state.cancellations).filter((x) => !x.skipsCampus);
+  const past = day.filter((x) => x.ms < t - 60000);
+  const rest = day.filter((x) => x.ms >= t - 60000);
+  const showPast = state.favShowPast.has(route.id);
+  const cell = (x) => {
+    const note = x.cancelled ? 'iptal' : x.night ? 'gece' : (x.chips[0] || '');
+    const cls = [x.kind, x.cancelled && 'x', lead && x.key === lead.key && 'now', x.ms < t - 60000 && 'past'].filter(Boolean).join(' ');
+    return `<li class="${cls}"><time>${x.time}</time><span class="v">${x.kind === 'iett' ? `<svg class="i" aria-hidden="true"><use href="#i-bus"/></svg>${esc(x.line)}` : '<svg class="i" aria-hidden="true"><use href="#i-van"/></svg>Shuttle'}</span>${note ? `<span class="n">${esc(note)}</span>` : ''}</li>`;
+  };
+  let list;
+  if (rest.length) {
+    list = `<ul class="fav-grid">${rest.map(cell).join('')}</ul>`;
+  } else {
+    list = '<p class="none">Bugün bu yönde başka sefer yok.</p>';
+  }
+  const pastHtml = past.length
+    ? `<button type="button" class="link past-toggle" data-fav-past="${route.id}">${showPast ? 'Geçmiş seferleri gizle' : `Geçmiş ${past.length} seferi göster`}</button>
+       ${showPast ? `<ul class="fav-grid past-grid">${past.map(cell).join('')}</ul>` : ''}`
+    : '';
+  return `<section class="fav ${lead ? lead.kind : ''}">
+    <div class="route-head"><h2><button type="button" class="route-link" data-open-route="${route.id}">${esc(route.name)}</button></h2>${starBtn(route.id)}</div>
+    <p class="fav-dir">${esc(dirTitle(route))}</p>
+    ${lead ? leadBlock(lead, t) : '<p class="none">Önümüzdeki günlerde bu yönde sefer yok.</p>'}
+    <h3 class="fav-sub">Bugün kalan seferler</h3>
+    ${list}
+    ${pastHtml}
+    ${route.iett ? cancelFoot(route.iett, t) : ''}
+  </section>`;
+}
+
+function renderFav() {
+  const favs = state.favs.map((id) => state.shuttle.routes.find((r) => r.id === id)).filter(Boolean);
+  if (!favs.length) {
+    return `<div class="fav-empty">
+      <h2>Henüz favorin yok</h2>
+      <p>Sıradaki sekmesinde bir hattın yanındaki yıldıza dokun. Favorin olduğunda uygulama bu sayfayla açılır ve her favori için bugünün bütün seferlerini gösterir.</p>
+      <p><button type="button" class="btn" data-tab-go="next">Sıradaki'ye git</button></p>
+    </div>`;
+  }
+  const t = now();
+  const services = C.buildServices(state.shuttle, km18Data(), state.dir);
+  return `<div class="favs">${favs.map((r) => favCard(r, services.get(r.id), t)).join('')}</div>`;
 }
 
 /* ---------------- Program ---------------- */
@@ -360,8 +425,9 @@ function renderInfo() {
   const sc = state.shuttleCheck;
   const { d: d1, mo: m1, y: y1 } = C.parseDateKey(term.validFrom);
   const { d: d2, mo: m2, y: y2 } = C.parseDateKey(term.validTo);
+  const fb = state.km18Fallback;
   const kmLine = k.source === 'bundled'
-    ? `Uygulamaya gömülü tarife (${esc(fmtKey(state.km18Fallback.checked))} tarihinde kontrol edildi).${k.error ? ` İBB'den güncel tarife alınamadı.` : ''}`
+    ? `${esc(fmtKey(fb.checked))} tarihli İETT tarifesi.${fb.updatedBy ? ' İBB\'nin tarife servisiyle her gün karşılaştırılıp güncelleniyor.' : ''}`
     : `İBB'den alındı, ${ago(k.fetchedAt)}.`;
   const annLine = a.fetchedAt
     ? `Son kontrol ${ago(a.fetchedAt)}${a.error ? ', şu an alınamıyor' : ''}. ${a.items.length ? `KM18 için ${a.items.length} duyuru var.` : 'KM18 için duyuru yok.'}`
@@ -377,6 +443,7 @@ function renderInfo() {
     <section>
       <h2>Bu uygulama</h2>
       <p>Kampüse gelen ve kampüsten kalkan shuttle'ları ve İETT KM18 otobüsünü tek ekranda gösterir. Kurtköy satırında ikisi birlikte, hangisi önce kalkıyorsa o üstte.</p>
+      <p>Bir hattın yanındaki yıldıza dokunarak onu favorilere ekleyebilirsin. Favorin varsa uygulama Favoriler sayfasıyla açılır.</p>
       ${state.installPrompt ? '<p><button type="button" class="btn" id="install">Uygulamayı yükle</button></p>' : ''}
     </section>
     <section>
@@ -434,7 +501,7 @@ function renderBanners() {
   if (state.updateReady) {
     out.push('<div class="banner info"><p>Uygulamanın yeni sürümü hazır.</p><button type="button" data-action="reload">Yenile</button></div>');
   }
-  if (state.tab === 'next' || state.tab === 'program') {
+  if (state.tab === 'next' || state.tab === 'program' || state.tab === 'fav') {
     const todayKey = C.dateKeyOf(t);
     const term = state.shuttle.term;
     if (todayKey > term.validTo) {
@@ -471,7 +538,8 @@ export function render() {
   document.body.dataset.tab = state.tab;
   renderBanners();
   const view = $('#view');
-  if (state.tab === 'next') view.innerHTML = renderNext();
+  if (state.tab === 'fav') view.innerHTML = renderFav();
+  else if (state.tab === 'next') view.innerHTML = renderNext();
   else if (state.tab === 'program') {
     const keep = $('.pick.routes')?.scrollLeft || 0;
     view.innerHTML = renderProgram();
@@ -487,8 +555,8 @@ function tick() {
   const t = now();
   recompute();
   $('#clock').textContent = C.fmtClock(t);
-  if (state.tab === 'next') {
-    $('#view').innerHTML = renderNext();
+  if (state.tab === 'next' || state.tab === 'fav') {
+    $('#view').innerHTML = state.tab === 'fav' ? renderFav() : renderNext();
     renderBanners();
   } else if (state.tab === 'program') {
     const list = $('#program-list');
@@ -517,7 +585,18 @@ function bind() {
     const el = ev.target.closest('button, a');
     if (!el) return;
     const d = el.dataset;
-    if (d.dir) {
+    if (d.fav) {
+      const id = d.fav;
+      const on = state.favs.includes(id);
+      state.favs = on ? state.favs.filter((x) => x !== id) : [...state.favs, id];
+      LS.set('favs', state.favs);
+      toast(on ? 'Favorilerden çıkarıldı' : 'Favorilere eklendi');
+      render();
+    } else if (d.favPast) {
+      if (state.favShowPast.has(d.favPast)) state.favShowPast.delete(d.favPast);
+      else state.favShowPast.add(d.favPast);
+      render();
+    } else if (d.dir) {
       state.dir = d.dir;
       LS.set('dir', state.dir);
       render();
@@ -565,6 +644,8 @@ function bind() {
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
+      state.resumedAt = Date.now();
+      state.swReg?.update().catch(() => {});
       tick();
       refreshAll(false);
     }
@@ -581,13 +662,14 @@ function bind() {
 function registerSW() {
   if (!('serviceWorker' in navigator)) return;
   navigator.serviceWorker.register('./sw.js').then((reg) => {
+    state.swReg = reg;
     reg.addEventListener('updatefound', () => {
       const w = reg.installing;
       w?.addEventListener('statechange', () => {
-        if (w.state === 'activated' && state.hadController) {
-          state.updateReady = true;
-          renderBanners();
-        }
+        if (w.state !== 'activated' || !state.hadController) return;
+        // Uygulama yeni açıldıysa sessizce yeni sürüme geç; ekrana bakarken kesmemek için aksi halde bant göster
+        if (Date.now() - state.resumedAt < 15000) location.reload();
+        else { state.updateReady = true; renderBanners(); }
       });
     });
   }).catch(() => { /* dosya:// ya da desteklenmiyor */ });
@@ -619,7 +701,8 @@ async function init() {
   if (cachedAnn?.items && Date.now() - cachedAnn.fetchedAt < 12 * 3600000) {
     Object.assign(state.ann, { items: cachedAnn.items, fetchedAt: cachedAnn.fetchedAt, strategy: cachedAnn.strategy, totalRows: cachedAnn.totalRows });
   }
-  if (location.hash === '#debug') state.tab = 'debug';
+  state.favs = state.favs.filter((id) => state.shuttle.routes.some((r) => r.id === id));
+  state.tab = location.hash === '#debug' ? 'debug' : state.favs.length ? 'fav' : 'next';
   bind();
   recompute();
   render();
