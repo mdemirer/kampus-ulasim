@@ -232,14 +232,7 @@ function routeRow(route, trips, t) {
       return `<li class="${x.kind}${x.cancelled ? ' x' : ''}">${vehicleBadge(x, { withLine: false })}<time>${x.time}</time>${x.cancelled ? '<em>iptal</em>' : ''}${lbl ? `<span class="d">${esc(lbl)}</span>` : ''}</li>`;
     }).join('')}</ol>`
     : '';
-  let foot = '';
-  if (route.iett) {
-    const src = state.km18.source === 'bundled' ? 'gömülü tarife' : 'İBB tarifesi';
-    const annTxt = state.ann.fetchedAt && !state.ann.error
-      ? `iptal bilgisi ${ago(state.ann.fetchedAt)}`
-      : state.ann.fetchedAt ? `iptal bilgisi ${ago(state.ann.fetchedAt)} (şu an alınamıyor)` : 'iptal bilgisi alınamadı';
-    foot = `<p class="foot${!state.ann.fetchedAt || state.ann.error ? ' warn' : ''}">${route.iett}: ${src} · ${annTxt}</p>`;
-  }
+  const foot = route.iett ? cancelFoot(route.iett, t) : '';
   return `<section class="route ${lead.kind}">
     ${name}
     ${cancelLine}
@@ -254,6 +247,24 @@ function routeRow(route, trips, t) {
     ${laterHtml}
     ${foot}
   </section>`;
+}
+
+/** Kurtköy satırının altındaki KM18 iptal durumu: ne bulunduğu ve ne zaman bakıldığı açıkça yazılır. */
+function cancelFoot(line, t) {
+  const a = state.ann;
+  if (!a.fetchedAt) {
+    return `<p class="foot warn">${line} iptalleri kontrol edilemedi; iptal edilen bir sefer burada görünmeyebilir.</p>`;
+  }
+  const prefix = `iett:${line}:${state.dir}:${C.dateKeyOf(t)}:`;
+  const times = [...state.cancellations.keys()].filter((k) => k.startsWith(prefix)).map((k) => k.slice(prefix.length)).sort();
+  const checked = a.error
+    ? `en son ${ago(a.fetchedAt)} kontrol edilebildi`
+    : `${ago(a.fetchedAt)} kontrol edildi`;
+  const what = times.length
+    ? `Bugün bu yönde ${times.length} ${line} seferi iptal (${times.join(', ')})`
+    : `${line} için iptal duyurusu yok`;
+  const cls = a.error ? ' warn' : times.length ? ' cancel' : '';
+  return `<p class="foot${cls}">${what} · ${checked}</p>`;
 }
 
 function renderNext() {
